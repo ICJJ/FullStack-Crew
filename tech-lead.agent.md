@@ -55,7 +55,7 @@ WHILE quality_gate_not_passed AND round < 3:
 IF round >= 3:
     Report remaining issues to user for decision
 ```
-
+ 
 ## Constraints
 - DO NOT write code — always delegate to swe
 - DO NOT write tests — always delegate to sdet
@@ -140,3 +140,8 @@ After completing all phases, provide a structured delivery report:
 - 与已有条目合并去重，避免重复
 - 文件不存在 → `memory create`（通用）或 `edit` 创建（项目）；已存在 → `memory str_replace/insert` 或 `edit` 追加
 - 通用知识和项目知识严格分离，不混淆
+
+### 完成 — 输出结果（必须最后执行）
+> **CRITICAL**: 作为 subagent 被调用时，最终动作必须是**文本消息**，不能是工具调用。否则调用方会收到空结果。
+
+完成所有反思和知识记录后，输出本次任务的交付报告（按上方 Output Format 格式）。这必须是你的最后一个动作。

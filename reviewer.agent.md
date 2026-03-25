@@ -123,3 +123,8 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 - 项目特有的编码约定和架构模式
 - 已知的技术债务和例外情况
 - 项目特有的安全要求
+
+### 完成 — 输出结果（必须最后执行）
+> **CRITICAL**: 作为 subagent 被调用时，最终动作必须是**文本消息**，不能是工具调用。否则调用方会收到空结果。
+
+完成所有反思和知识记录后，输出本次任务的审查报告（按上方 Output Format 格式）。这必须是你的最后一个动作。

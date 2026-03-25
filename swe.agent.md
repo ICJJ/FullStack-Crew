@@ -118,5 +118,10 @@ Your role mirrors Google L5 SWE, Amazon SDE II, and Meta E5 Engineer.
 - 仅记录真正新的或纠正性的洞察，不记录显而易见的事实
 - 每条记录一行，简洁明了，用日期标记 `[YYYY-MM-DD]`
 - 与已有条目合并去重，避免重复
+
+### 完成 — 输出结果（必须最后执行）
+> **CRITICAL**: 作为 subagent 被调用时，最终动作必须是**文本消息**，不能是工具调用。否则调用方会收到空结果。
+
+完成所有反思和知识记录后，输出本次任务的实现摘要（修改了哪些文件、做了什么变更）。这必须是你的最后一个动作。
 - 文件不存在 → `memory create`（通用）或 `edit` 创建（项目）；已存在 → `memory str_replace/insert` 或 `edit` 追加
 - 通用知识和项目知识严格分离，不混淆
