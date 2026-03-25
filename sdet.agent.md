@@ -35,6 +35,11 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 - Write a regression test that fails before fix and passes after
 
 ### 5. Coverage Analysis
+- **默认目标覆盖率：80%**（可被项目配置覆盖，如 `pyproject.toml` 中的 `--cov-fail-under`）
+- 达标判定规则：
+  - ✅ **达标（Pass）**：总覆盖率 ≥ 80%
+  - ⚠️ **警告（Warning）**：60% ≤ 总覆盖率 < 80% — 列出未达标模块，建议补充测试
+  - 🔴 **不合格（Fail）**：总覆盖率 < 60% — 标记为阻塞项，必须补充测试后才能交付
 - Measure line, branch, and function coverage
 - Identify coverage gaps in critical code paths
 - Prioritize test additions by risk and complexity
