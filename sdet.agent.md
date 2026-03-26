@@ -70,6 +70,12 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 ### 8. Workspace 审计与清理（Audit & Cleanup）
 审计并清理 workspace 中的非交付文件，包括但不限于：
 
+#### 术语定义
+- **测试代码文件**：`test_*.py`、`conftest.py`、`*_test.py` — Python 源代码，用于执行测试
+- **测试输出文件**：`test_*.txt`、`pytest_result.txt`、`*_results.txt` — 测试运行的文本日志，非代码
+- **覆盖率产物**：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml` — pytest-cov 生成的报告文件
+- **临时文件**：`tmp_*.py`、`debug_*.py`、`cx_*.txt`、`*.log`、scratch scripts — 调试和分析过程中产生的一次性文件
+
 #### 文件放置规则
 | 类型 | 目录 | 生命周期 | 示例 |
 |------|------|---------|------|

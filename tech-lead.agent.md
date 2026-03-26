@@ -62,17 +62,18 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - 自动修复后 re-review（max 3 rounds）
 11. Delegate to **sdet** to write and run tests
 12. **sdet** MUST audit workspace and clean up non-deliverable files:
-    - **白名单自动清理**：`cov_tests/` 内覆盖率产物（`htmlcov/`, `.coverage`, `.coverage.*`）、`tmp/`（整目录）、`__pycache__/`、`.pytest_cache/`、`*.pyc`、pytest 误导出 — 无需确认
-    - **禁止区自动迁移**（SDET 直接执行，不得询问确认）：发现 `cov_tests/` 和 `tmp/` 之外的测试文件（含 `tests/` 目录）→ 自动迁移到 `cov_tests/`，同步更新 `pyproject.toml` testpaths
-    - **灰名单上报**：孤立测试文件、命名违规 — 报告 tech-lead 决定处理方式
-    - **时序**：在所有测试执行完成后执行，覆盖测试过程中产生的文件
+    - **判断规则**：`.py` 且匹配 `test_*`/`conftest` → 测试代码（迁移）；`.txt`/`.log`/目录产物 → 非代码（删除）；其他 → 灰名单（上报）
+    - **白名单自动清理**：覆盖率产物（`htmlcov/`、`.coverage`，含项目根目录）、`tmp/`（整目录）、`__pycache__/`、`.pytest_cache/`、根目录 `test_*.txt`/`debug_*.py`/`tmp_*.py`/`*.log` — 无需确认
+    - **禁止区自动迁移**（SDET 直接执行，不得询问确认）：测试代码文件（`.py`）位于 `cov_tests/` 之外 → 迁移到 `cov_tests/`，更新 `pyproject.toml` testpaths，`pytest --co` 验证；失败则回退并标记 `🛑 MIGRATION_BLOCKED`
+    - **灰名单上报**：孤立测试文件、命名违规、未知文件 — 报告 tech-lead 决定
+    - **时序**：先用现有路径跑完测试，再执行清理和迁移
 13. **sdet** 测试失败归属 — 首次发现失败时，在 base branch 上重跑失败用例，区分 `[NEW]`（本次变更引入）vs `[PRE-EXISTING]`（已存在），仅对 `[NEW]` 触发 swe 修复循环
 14. If tests fail (`[NEW]` only) → delegate to **swe** to fix → **sdet** re-tests (max 3 rounds)
 
 ### Phase 3.5 — Final Sweep
 15. **Workspace 最终清扫** — 在交付前扫描 workspace，确认无 agent 产生的临时文件残留：
-    - 检查项目根目录有无 `tmp/`、`cov_tests/` 内残留覆盖率产物、`debug_*`、`*.log`、`__pycache__/`、`.pytest_cache/`、编号文件等
-    - 发现残留 → 委派 **swe** 清理（白名单内直接删除，非白名单报告用户）
+    - 检查项目根目录有无 `tmp/`、`htmlcov/`（根目录和 `cov_tests/` 内）、`.coverage`、`debug_*.py`、`tmp_*.py`、`test_*.txt`、`*.log`、`__pycache__/`、`.pytest_cache/`、编号文件
+    - 判断规则与 step 12 一致：`.py` 测试代码 → 迁移，非代码产物 → 删除，其他 → 报告用户
     - 清扫通过 → 进入 Delivery
 
 ### Phase 4 — Delivery
