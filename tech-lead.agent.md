@@ -100,7 +100,8 @@ After completing all phases, provide a structured delivery report:
 每次任务开始时，在做任何分析或委派之前：
 1. 读取通用知识：`memory view /memories/tech-lead.md`（不存在则跳过）
 2. 读取项目知识：尝试读取 `.github/learnings/tech-lead.md`（不存在则跳过）
-3. 将已有知识应用到当前任务的规划和委派决策中
+3. **逐条检查** `## Orchestration Patterns` 中的规则，如果当前任务匹配某条规则，**必须遵循该规则**而不是重新推理
+4. 特别注意 `## Delegation Lessons` 中记录的委派经验——这些是历史错误的纠正，优先级高于默认 Sub-Agents 表
 
 ### 完成 — 角色反思
 每次任务完成后，先评估自身角色定义是否需要优化：
