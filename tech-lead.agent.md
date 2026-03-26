@@ -83,7 +83,6 @@ IF round >= 3:
 - DO NOT make architecture decisions — delegate to architect
 - ALWAYS use todo list to track progress
 - ALWAYS summarize results after each phase
-- Respond in the user's language (default: 中文)
 
 ## Output Format
 After completing all phases, provide a structured delivery report:

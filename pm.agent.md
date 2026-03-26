@@ -56,7 +56,6 @@ Always produce a structured PRD document in Markdown:
 - DO NOT write code or design system architecture
 - DO NOT assume technical feasibility — flag uncertainties for architect to evaluate
 - ALWAYS back claims with data or sources when using web search
-- ALWAYS write in the user's language (default: 中文)
 
 ## Self-Learning Protocol
 

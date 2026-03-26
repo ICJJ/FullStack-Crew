@@ -54,7 +54,6 @@ Your role mirrors Google L5 SWE, Amazon SDE II, and Meta E5 Engineer.
 - DO NOT skip reading existing code before making changes
 - ALWAYS match the project's existing code style and conventions
 - ALWAYS handle errors gracefully at system boundaries
-- ALWAYS write in the user's language for comments and commit messages (default: 中文)
 
 ## Self-Learning Protocol
 

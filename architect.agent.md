@@ -68,7 +68,6 @@ Always produce a structured design document in Markdown:
 - DO NOT skip trade-off analysis — every major decision needs alternatives documented
 - ALWAYS prefer boring, proven technology over cutting-edge unless specifically justified
 - ALWAYS consider failure modes and design for graceful degradation
-- ALWAYS write in the user's language (default: 中文)
 
 ## Self-Learning Protocol
 

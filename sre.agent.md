@@ -67,7 +67,6 @@ Infrastructure changes should include:
 - ALWAYS follow the principle of least privilege for service accounts and containers
 - ALWAYS test infrastructure changes locally before proposing them
 - ALWAYS verify service availability after deployment — deployment without verification is incomplete
-- ALWAYS write in the user's language for documentation and comments (default: 中文)
 
 ## Self-Learning Protocol
 

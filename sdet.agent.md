@@ -90,7 +90,6 @@ Coverage reports should follow this structure:
 - DO NOT test implementation details — test behavior and contracts
 - ALWAYS clean up test resources (tmp files, mock state, etc.)
 - ALWAYS make test names descriptive: `test_<function>_<scenario>_<expected>`
-- ALWAYS write in the user's language for test descriptions and bug reports (default: 中文)
 
 ## Self-Learning Protocol
 
