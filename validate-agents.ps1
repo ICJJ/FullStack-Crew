@@ -80,7 +80,7 @@ foreach ($file in $agentFiles) {
     }
 
     # Check Completion Status Protocol
-    if ($content -notmatch 'DONE|DONE_WITH_CONCERNS|BLOCKED|NEEDS_CONTEXT') {
+    if ($content -notmatch '✅ DONE|⚠️ DONE_WITH_CONCERNS|🚫 BLOCKED|❓ NEEDS_CONTEXT') {
         Write-Host "  WARN: Missing Completion Status Protocol" -ForegroundColor DarkYellow
         $script:warnings++
     } else {

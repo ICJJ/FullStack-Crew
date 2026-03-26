@@ -7,7 +7,7 @@
 3. 必须包含章节：Core Responsibilities, Constraints, Self-Learning Protocol
 4. 在 `tech-lead.agent.md` 的 `agents:` 列表和 Sub-Agents 表中注册新 Agent
 5. 更新 `README.md` 的 Agent 概览表
-6. 运行 `.\validate-agents.ps1` 确认通过
+6. 运行 `./validate-agents.ps1` 确认通过
 
 ## 修改现有 Agent
 
@@ -16,7 +16,7 @@
   - 每次最多修改 1-2 个章节
   - 保持 YAML frontmatter 格式正确
   - 确保 Completion Status Protocol 存在
-  - 修改后运行 `.\validate-agents.ps1`
+  - 修改后运行 `./validate-agents.ps1`
 
 ## 知识文件格式
 
