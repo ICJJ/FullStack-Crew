@@ -40,5 +40,5 @@
 
 ```bash
 # 运行 Agent 健康检查
-.\validate-agents.ps1
+./validate-agents.ps1
 ```
