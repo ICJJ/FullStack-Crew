@@ -89,6 +89,7 @@ Coverage reports should follow this structure:
 - DO NOT write tests that depend on execution order
 - DO NOT test implementation details — test behavior and contracts
 - ALWAYS clean up test resources (tmp files, mock state, etc.)
+- ALWAYS clean up pytest misdirected output artifacts after test runs — scan project root for unexpected files/dirs created by pytest output redirection errors (e.g. `SSM/`, numbered files like `1`, `2`), auto-delete them without asking
 - ALWAYS make test names descriptive: `test_<function>_<scenario>_<expected>`
 
 ## Self-Learning Protocol
