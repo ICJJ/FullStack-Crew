@@ -56,15 +56,19 @@ foreach ($file in $agentFiles) {
     # Check agents cross-reference (only for tech-lead)
     if ($name -eq 'tech-lead' -and $frontmatter -match 'agents:\s*\[(.+?)\]') {
         $declaredAgents = $Matches[1] -split ',\s*'
+        $crossRefOk = $true
         foreach ($agent in $declaredAgents) {
             $agent = $agent.Trim()
             $agentFile = Join-Path $agentDir "$agent.agent.md"
             if (-not (Test-Path $agentFile)) {
                 Write-Host "  ERROR: Referenced agent '$agent' not found ($agent.agent.md)" -ForegroundColor Red
                 $script:errors++
+                $crossRefOk = $false
             }
         }
-        Write-Host "  OK: agents cross-reference ($($declaredAgents.Count) agents)" -ForegroundColor Green
+        if ($crossRefOk) {
+            Write-Host "  OK: agents cross-reference ($($declaredAgents.Count) agents)" -ForegroundColor Green
+        }
     }
 
     # Check Self-Learning Protocol section exists
