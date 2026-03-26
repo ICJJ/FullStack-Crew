@@ -40,25 +40,34 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **Bug Fix 委派**：必须附加 `🔍 INVESTIGATE-FIRST` 标志，要求 swe 先根因调查再修复
 
 ### Phase 3 — Quality Gate (Iterative)
-8. Code review — 按 diff 大小分层审查：
+8. **Scope Drift Check** — 每轮质量门禁前进行范围漂移检查：
+   - 对比 todo list 原始项 vs swe 实际变更文件列表
+   - 对每个 todo 项标记状态：`[DONE]` / `[PARTIAL]` / `[NOT DONE]` / `[CHANGED]`（需求变更）/ `[DRIFT]`（范围蔓延  — 改了不相关的文件）
+   - 发现 `[DRIFT]` → 要求 swe 回退不相关变更或给出合理解释
+   - 发现 `[NOT DONE]` → 重新委派或标记为遗留
+9. Code review — 按 diff 大小分层审查：
    - **Small diff (<50 行)**：仅 Argus MCP `argus_scan` → `argus_review`
    - **Medium diff (50-199 行)**：Argus + 委派 **reviewer** 对抗性审查
    - **Large diff (200+ 行)**：Argus + **reviewer** + **swe**（只读攻击者视角）三方审查
    - **Fallback**: 仅当 Argus MCP 不可用时，委派 **reviewer** agent 进行独立代码审查
-9. 审查问题处理：
+10. 审查问题处理：
    - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
    - **白名单豁免** — 以下操作无需确认：`rm -rf node_modules`、`rm -rf __pycache__`、`rm -rf .pytest_cache`、`rm -rf dist/` 等构建产物清理
-   - **询问用户** — 以下特殊问题 MUST 通过对话框确认设计方案后再实现：新增 Feature（先展示设计方案，用户确认后再编码）、架构级重构（模块拆分/合并）、公共 API 签名变更、删除现有功能或文件、性能优化涉及行为变更、第三方依赖替换
+   - **询问用户** — 以下特殊问题 MUST 通过对话框确认设计方案后再实现：新增 Feature、架构级重构（模块拆分/合并）、公共 API 签名变更、删除现有功能或文件、性能优化涉及行为变更、第三方依赖替换。提问格式：
+     1. **背景**: 一句话说明当前状态和发现的问题
+     2. **简化问题**: 将复杂问题提炼为一个核心决策点
+     3. **推荐方案**: 给出明确推荐（不要给“都可以”）
+     4. **可选项**: 列出 2-3 个备选方案，各标注 Pros/Cons
    - 自动修复后 re-review（max 3 rounds）
-10. Delegate to **sdet** to write and run tests
-11. **sdet** MUST audit workspace for suspected test files (orphaned, misplaced, naming violations) and report findings
-12. **sdet** 测试失败归属 — 首次发现失败时，在 base branch 上重跑失败用例，区分 `[NEW]`（本次变更引入）vs `[PRE-EXISTING]`（已存在），仅对 `[NEW]` 触发 swe 修复循环
-13. If tests fail (`[NEW]` only) → delegate to **swe** to fix → **sdet** re-tests (max 3 rounds)
+11. Delegate to **sdet** to write and run tests
+12. **sdet** MUST audit workspace for suspected test files (orphaned, misplaced, naming violations) and report findings
+13. **sdet** 测试失败归属 — 首次发现失败时，在 base branch 上重跑失败用例，区分 `[NEW]`（本次变更引入）vs `[PRE-EXISTING]`（已存在），仅对 `[NEW]` 触发 swe 修复循环
+14. If tests fail (`[NEW]` only) → delegate to **swe** to fix → **sdet** re-tests (max 3 rounds)
 
 ### Phase 4 — Delivery
-14. If deployment changes needed → delegate to **sre**
+15. If deployment changes needed → delegate to **sre**
     - **Canary Window（可选）**：部署后执行 3-5 次间隔检查（health endpoint + 基本功能验证），出现异常时建议 rollback
-15. Summarize all work into a structured delivery report
+16. Summarize all work into a structured delivery report
     - 附加 **Decision Summary**：N 个自动决策，M 个用户确认决策
 
 ## Iteration Protocol
@@ -80,6 +89,16 @@ IF round >= 3:
     Report remaining issues to user for decision
 ```
  
+## Escalation Protocol
+
+单个 sub-agent 连续失败处理规则：
+- **1 次失败**: 正常重试，附加更详细的上下文
+- **2 次失败**: 切换策略（如换 agent、简化任务、拆分子任务）
+- **3 次连续失败**: 立即停止该 agent，在交付报告中标记为 `🛑 ESCALATED`，报告用户并建议：
+  1. 人工介入
+  2. 降级方案（简化需求）
+  3. 跳过该步骤并记录为遗留
+
 ## Constraints
 - DO NOT write code — always delegate to swe
 - DO NOT write tests — always delegate to sdet

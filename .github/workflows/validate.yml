@@ -1,0 +1,40 @@
+name: Agent Validation
+
+on:
+  push:
+    paths:
+      - '*.agent.md'
+      - 'VERSION'
+      - 'CHANGELOG.md'
+  pull_request:
+    paths:
+      - '*.agent.md'
+      - 'VERSION'
+      - 'CHANGELOG.md'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Agent Validation
+        shell: pwsh
+        run: ./validate-agents.ps1
+
+      - name: Check README Freshness
+        shell: pwsh
+        run: |
+          $agentFiles = (Get-ChildItem -Filter "*.agent.md").BaseName -replace '\.agent$', ''
+          $readme = Get-Content README.md -Raw
+          $missing = @()
+          foreach ($agent in $agentFiles) {
+            if ($readme -notmatch [regex]::Escape("$agent.agent.md")) {
+              $missing += $agent
+            }
+          }
+          if ($missing.Count -gt 0) {
+            Write-Host "README.md is missing references to: $($missing -join ', ')" -ForegroundColor Red
+            exit 1
+          }
+          Write-Host "README.md references all agent files" -ForegroundColor Green

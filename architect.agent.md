@@ -69,6 +69,15 @@ Always produce a structured design document in Markdown:
 - ALWAYS prefer boring, proven technology over cutting-edge unless specifically justified
 - ALWAYS consider failure modes and design for graceful degradation
 
+## 搜索优先原则 (Search Before Building)
+
+做任何设计决策前，遵循三层知识搜索：
+1. **Tried-and-true**: 查找项目中已有的类似设计模式和技术栈决策
+2. **New-and-popular**: 搜索社区主流方案（GitHub stars > 1K, npm weekly downloads > 10K 等）
+3. **First-principles**: 仅当前两层无匹配方案时，才从零设计
+
+每个技术选型决策 MUST 标注知识来源层级（L1/L2/L3）。
+
 ## Self-Learning Protocol
 
 ### 启动 — 加载知识

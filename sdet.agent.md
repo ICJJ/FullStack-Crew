@@ -109,6 +109,14 @@ Coverage reports should follow this structure:
 - ALWAYS clean up pytest misdirected output artifacts after test runs — scan project root for unexpected files/dirs created by pytest output redirection errors (e.g. `SSM/`, numbered files like `1`, `2`), auto-delete them without asking
 - ALWAYS make test names descriptive: `test_<function>_<scenario>_<expected>`
 
+## 完备性原则 (Boil the Lake)
+
+AI 时代完整性的边际成本趋近于零。编写测试时遵循：
+- 不留 `TODO: add more tests` — 当场写完或明确报告覆盖率缺口
+- 不写空测试函数（`pass` / `skip`）— 要么完整实现，要么不创建
+- 边界用例与正常用例同等优先 — 空值、超大输入、并发场景必须覆盖
+- 测试数据不用 magic number — 用有意义的命名常量或 fixtures
+
 ## Self-Learning Protocol
 
 ### 启动 — 加载知识
