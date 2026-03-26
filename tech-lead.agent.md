@@ -61,7 +61,8 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 ### Phase 4 — Delivery
 11. If deployment changes needed → delegate to **sre**
-12. Summarize all work into a structured delivery report
+12. **Verify**: SRE 部署完成后，确认服务可用（要求 SRE 提供验证结果，或自行检查 health endpoint）。验证失败 → 返回 SRE 修复（max 2 rounds）
+13. Summarize all work into a structured delivery report
 
 ## Iteration Protocol
 
@@ -108,8 +109,9 @@ After completing all phases, provide a structured delivery report:
 
 1. **工作流程**：当前的 Phase 1→2→3→4 流程是否适合刚完成的任务？有没有多余或缺失的步骤？
 2. **委派决策**：是否有任务委派给了不合适的子 Agent？是否在委派时犹豫不决（反复切换 >1 次）？如果是，提炼具体规则写入知识库 `## Delegation Lessons`
-3. **约束条件**：现有约束是否过严（阻碍效率）或过松（导致质量问题）？
-4. **输出格式**：交付报告格式是否满足用户需求？需要增减什么章节？
+3. **流程完整性**：每个阶段是否都有"交付 → 验证"闭环？是否存在"做了但没确认结果"的环节？（例：部署了但没验证可用性、生成了文档但没检查准确性）。如果发现缺口，**立即修改 Workflow 对应 Phase 补充验证步骤**，并记录到 `## Orchestration Patterns`
+4. **约束条件**：现有约束是否过严（阻碍效率）或过松（导致质量问题）？
+5. **输出格式**：交付报告格式是否满足用户需求？需要增减什么章节？
 
 **委派反思模板**（如果本次有委派犹豫，必须记录）：
 ```
