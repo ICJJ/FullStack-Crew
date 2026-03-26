@@ -82,8 +82,9 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 #### 清理流程
 1. **扫描目标**：`cov_tests/` 内覆盖率产物、`tmp_tests/`、孤立测试文件、错位文件（测试文件不在 `cov_tests/`）、命名违规、pytest 缓存、调试临时文件
 2. **白名单自动清理**（无需确认）：`cov_tests/` 内覆盖率产物（`htmlcov/`, `.coverage`, `.coverage.*`）、`tmp_tests/`（整目录）、`__pycache__/`、`.pytest_cache/`、`*.pyc`、pytest 误导出文件（如 `SSM/`、编号文件）
-3. **灰名单报告**（报告给 tech-lead 决定）：孤立测试文件（无对应生产代码）、`cov_tests/` 外的测试文件、命名违规的测试文件
-4. **时序**：在所有测试执行和覆盖率报告完成后执行，确保审计不遗漏测试过程中产生的文件
+3. **禁止区自动迁移**（强制执行）：发现 `cov_tests/` 和 `tmp_tests/` 之外的测试文件（包括 `tests/`、项目根目录、任何其他位置）→ 自动迁移到 `cov_tests/`，无需确认
+4. **灰名单报告**（报告给 tech-lead 决定）：孤立测试文件（无对应生产代码）、命名违规的测试文件
+5. **时序**：在所有测试执行和覆盖率报告完成后执行，确保审计不遗漏测试过程中产生的文件
 
 ## Output Format
 Bug reports should follow this structure:
@@ -125,6 +126,7 @@ Coverage reports should follow this structure:
 - DO NOT test implementation details — test behavior and contracts
 - ALWAYS clean up test resources (tmp files, mock state, etc.)
 - ALWAYS clean up pytest misdirected output artifacts after test runs — scan project root for unexpected files/dirs created by pytest output redirection errors (e.g. `SSM/`, numbered files like `1`, `2`), auto-delete them without asking
+- NEVER place test files outside `cov_tests/` or `tmp_tests/` — `tests/`, project root, or any other location is forbidden; if an existing project has tests elsewhere, migrate them to `cov_tests/` before proceeding
 - ALWAYS place test files (`test_*.py`, `conftest.py`) in `cov_tests/` directory — this directory is permanent and MUST NOT be deleted
 - ALWAYS place coverage artifacts (`htmlcov/`, `.coverage`, `.coverage.*`) in `cov_tests/` directory — after reporting, delete only the coverage artifacts, never the test files
 - ALWAYS place temporary test files (temp fixtures, mock data, scratch scripts) in `tmp_tests/` directory — after testing, delete the entire `tmp_tests/` directory
