@@ -50,38 +50,6 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 |-----------|------|--------|--------|
 | F001 | 示例功能 | 92% | test_example.py |
 
-### 6. Test File Management
-
-#### 放置规则
-- 首次写测试前 MUST 检查项目现有测试目录结构，沿用已有约定
-- **正式测试**（对覆盖率有贡献）MUST 放在 `unit_tests/` 目录下，由 pytest 统一管理
-  - 测试文件命名 MUST 使用 `test_<module>.py` 格式（pytest 默认发现模式）
-  - 目录结构 MUST 镜像源码目录结构（如 `src/auth/login.py` → `unit_tests/auth/test_login.py`）
-  - conftest.py MUST 放在 `unit_tests/` 根目录或对应子目录中
-  - NEVER 删除 `unit_tests/` 下已提交到 git 的测试文件
-- **临时测试**（调试/验证/一次性脚本）MUST 放在 `tmp_tests/` 目录下
-  - 用完后 MUST 清理整个 `tmp_tests/` 目录
-  - NEVER 将 `tmp_tests/` 提交到 git（MUST 加入 .gitignore）
-
-#### 产物清理
-- 测试运行完成后 MUST 清理以下产物（除非项目 .gitignore 已忽略且用户未要求保留）：
-  - `.coverage` / `.coverage.*` — 覆盖率数据文件
-  - `htmlcov/` — HTML 覆盖率报告目录
-  - `.pytest_cache/` — pytest 缓存
-  - `__pycache__/` — 仅清理 tests/ 下的字节码缓存
-- NEVER 清理 `unit_tests/` 下已提交到 git 的测试文件
-- `tmp_tests/` 目录 MUST 在任务完成后整体删除（`Remove-Item -Recurse` 或等效命令）
-- `tmp*` 前缀的临时数据文件 MUST 使用 `tempfile` 模块或 pytest `tmp_path` fixture 创建，确保自动清理
-
-#### 工作区测试审查
-- 每次写测试前 MUST 扫描工作区已有的疑似测试文件，报告以下问题：
-  - **孤立测试** — 测试文件存在但对应源文件已删除/重命名
-  - **误放位置** — 正式测试文件不在 `unit_tests/` 目录下（如散落在 `src/`、项目根目录），或临时测试混入 `unit_tests/`
-  - **命名不规范** — 测试文件不符合 `test_*.py` 命名模式（如 `tests_foo.py`、`foo_tests.py`）
-  - **重复测试** — 多个测试文件测试同一源文件的相同功能
-  - **残留临时文件** — 工作区中存在 `tmp*` 前缀的文件/目录（可能是上次测试运行未清理的产物）
-- 审查结果 MUST 在测试报告中以表格形式汇报
-
 ## Output Format
 Bug reports should follow this structure:
 ```markdown
@@ -107,16 +75,6 @@ Coverage reports should follow this structure:
 - 未覆盖 Feature: (列表)
 ````
 
-Test file audit reports should follow this structure:
-````markdown
-## 测试文件审查
-| 问题类型 | 文件 | 说明 | 建议 |
-|---------|------|------|------|
-| 孤立测试 | tests/test_old.py | 对应源文件 src/old.py 不存在 | 删除或确认是否重命名 |
-| 误放位置 | src/utils/test_helper.py | 应在 tests/utils/ 下 | 移动到 tests/utils/test_helper.py |
-| 命名不规范 | tests/foo_tests.py | 不符合 test_*.py 模式 | 重命名为 tests/test_foo.py |
-````
-
 ## Working Protocol
 1. **Understand the code**: Read production code before writing tests
 2. **Design tests**: Plan test cases before implementation
@@ -131,7 +89,6 @@ Test file audit reports should follow this structure:
 - DO NOT write tests that depend on execution order
 - DO NOT test implementation details — test behavior and contracts
 - ALWAYS clean up test resources (tmp files, mock state, etc.)
-- ALWAYS audit workspace for misplaced/orphaned test files before writing new tests
 - ALWAYS make test names descriptive: `test_<function>_<scenario>_<expected>`
 
 ## Self-Learning Protocol
