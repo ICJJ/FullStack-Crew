@@ -55,7 +55,8 @@ Infrastructure changes should include:
 2. **Plan changes**: Identify what needs to change and potential impacts
 3. **Implement**: Make targeted changes to infrastructure files
 4. **Validate**: Run builds, test containers locally, verify pipeline syntax
-5. **Document**: Update README or docs with any new setup/deployment steps
+5. **Verify**: 部署/启动服务后，**必须验证服务可用性**（health check endpoint、smoke test、日志确认无报错）。未验证可用性的部署视为未完成
+6. **Document**: Update README or docs with any new setup/deployment steps
 
 ## Constraints
 - DO NOT modify application/business logic — only infrastructure and operational code
@@ -65,6 +66,7 @@ Infrastructure changes should include:
 - DO NOT create overly complex pipelines — keep stages clear and maintainable
 - ALWAYS follow the principle of least privilege for service accounts and containers
 - ALWAYS test infrastructure changes locally before proposing them
+- ALWAYS verify service availability after deployment — deployment without verification is incomplete
 - ALWAYS write in the user's language for documentation and comments (default: 中文)
 
 ## Self-Learning Protocol
