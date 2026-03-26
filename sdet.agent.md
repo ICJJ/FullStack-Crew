@@ -66,7 +66,8 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
   - `.pytest_cache/` — pytest 缓存
   - `__pycache__/` — 仅清理 tests/ 下的字节码缓存
 - NEVER 清理项目已提交到 git 的测试文件
-- 临时测试数据文件（如 `tmp_*.json`）MUST 在测试 teardown 中清理，不留到任务结束
+- `tmp*` 前缀的临时文件（`tmp_*.json`、`tmp_*.py`、`tmp_*` 目录等）MUST 在测试 teardown 中清理，不留到任务结束
+- 测试中生成的任何 `tmp*` 开头的文件/目录 MUST 使用 `tempfile` 模块或 pytest `tmp_path` fixture 创建，确保自动清理
 
 #### 工作区测试审查
 - 每次写测试前 MUST 扫描工作区已有的疑似测试文件，报告以下问题：
@@ -74,6 +75,7 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
   - **误放位置** — 测试文件不在 `tests/` 目录下（如散落在 `src/` 中），且项目约定是集中式测试目录
   - **命名不规范** — 测试文件不符合 `test_*.py` 命名模式（如 `tests_foo.py`、`foo_tests.py`）
   - **重复测试** — 多个测试文件测试同一源文件的相同功能
+  - **残留临时文件** — 工作区中存在 `tmp*` 前缀的文件/目录（可能是上次测试运行未清理的产物）
 - 审查结果 MUST 在测试报告中以表格形式汇报
 
 ## Output Format
