@@ -86,11 +86,22 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 | pytest 缓存 | 自动生成位置 | 立即清理 | `__pycache__/`, `.pytest_cache/`, `*.pyc` |
 
 #### 清理流程
-1. **扫描目标**：`cov_tests/` 内覆盖率产物、`tmp/`、孤立测试文件、错位文件（测试文件不在 `cov_tests/`）、命名违规、pytest 缓存、调试临时文件
-2. **白名单自动清理**（直接删除，NEVER 询问用户）：`cov_tests/` 内覆盖率产物（`htmlcov/`, `.coverage`, `.coverage.*`）、`tmp/`（整目录）、`__pycache__/`、`.pytest_cache/`、`*.pyc`、pytest 误导出文件（如 `SSM/`、编号文件）、根目录测试输出（`test_*.txt`、`pytest_result.txt`）、根目录分析输出（`cx_*.txt`、`*_results.txt`、`sync_funcs.txt`、`models_list.txt`）、根目录临时脚本（`tmp_*.py`）
-3. **禁止区自动迁移**（直接执行，NEVER 询问用户）：发现 `cov_tests/` 和 `tmp/` 之外的测试文件（包括 `tests/`、项目根目录、任何其他位置）→ 自动迁移到 `cov_tests/`。迁移后必须同步更新 `pyproject.toml` 中的 `testpaths`（如 `["tests"]` → `["cov_tests"]`）和其他引用旧路径的配置
-4. **灰名单报告**（报告给 tech-lead 决定）：孤立测试文件（无对应生产代码）、命名违规的测试文件
-5. **时序**：在所有测试执行和覆盖率报告完成后执行，确保审计不遗漏测试过程中产生的文件
+1. **执行时机**：在所有测试通过并生成覆盖率报告之后执行（先用项目现有路径跑完测试，再清理迁移）
+2. **判断优先级**（遇到文件时按此顺序判定，first match wins）：
+   - ① 文件扩展名是 `.py` 且匹配 `test_*.py` / `*_test.py` / `conftest.py` → **测试代码** → 执行迁移规则（step 4）
+   - ② 文件扩展名是 `.txt` / `.log` / `.xml` / `.html` → **非代码产物** → 执行删除规则（step 3）
+   - ③ 目录名匹配 `htmlcov/` / `__pycache__/` / `.pytest_cache/` / `tmp/` → **产物目录** → 执行删除规则（step 3）
+   - ④ 其他 → **灰名单** → 报告 tech-lead
+3. **白名单自动删除**（直接删除，NEVER 询问用户）：
+   - `cov_tests/` 内：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml`
+   - 项目根目录内：`htmlcov/`（pytest-cov 默认输出位置）、`.coverage`、`test_*.txt`、`pytest_result.txt`、`*_results.txt`、`cx_*.txt`、`sync_funcs.txt`、`models_list.txt`、`tmp_*.py`、`debug_*.py`、`*.log`
+   - 任意位置：`__pycache__/`、`.pytest_cache/`、`*.pyc`、`tmp/`（整目录）
+   - pytest 误导出：意外创建的目录/文件（如 `SSM/`、编号文件 `1`、`2`）
+4. **禁止区自动迁移**（直接执行，NEVER 询问用户）：
+   - 触发条件：测试代码文件（`.py`）位于 `cov_tests/` 和 `tmp/` 之外（含 `tests/`、项目根目录等）
+   - 执行步骤：① 将文件移动到 `cov_tests/` ② 更新 `pyproject.toml` 的 `testpaths` ③ 更新 `conftest.py` 中的相对导入路径 ④ 运行 `pytest cov_tests/ --co -q` 验证迁移不破坏测试发现
+   - **降级处理**：如果迁移后 `pytest --co` 失败 → 回退迁移，报告 tech-lead 并标记为 `🛑 MIGRATION_BLOCKED`
+5. **灰名单报告**（报告给 tech-lead 决定）：孤立测试文件（无对应生产代码）、命名违规、step 2 判断为"其他"的未知文件
 
 ## Output Format
 Bug reports should follow this structure:
@@ -132,8 +143,8 @@ Coverage reports should follow this structure:
 - DO NOT test implementation details — test behavior and contracts
 - ALWAYS clean up test resources (tmp files, mock state, etc.)
 - ALWAYS clean up pytest misdirected output artifacts after test runs — scan project root for unexpected files/dirs created by pytest output redirection errors (e.g. `SSM/`, numbered files like `1`, `2`), auto-delete them without asking
-- NEVER place test files outside `cov_tests/` or `tmp/` — `tests/`, project root, or any other location is forbidden; if an existing project has tests elsewhere, migrate them to `cov_tests/` before proceeding
-- NEVER ask "需要我清理吗？" or "需要我迁移吗？" — 白名单清理和禁止区迁移是强制动作，发现即执行，不询问、不等待、不报告后再行动
+- NEVER place test code files (`test_*.py`, `conftest.py`, `*_test.py`) outside `cov_tests/` or `tmp/` — `tests/`, project root, or any other location is forbidden; if an existing project has tests elsewhere, run tests first with existing paths, then migrate to `cov_tests/`
+- NEVER ask "需要我清理吗？" or "需要我迁移吗？" — 白名单删除和禁止区迁移是强制动作，发现即执行；唯一例外：迁移后 pytest --co 失败时回退并报告 tech-lead
 - ALWAYS place test files (`test_*.py`, `conftest.py`) in `cov_tests/` directory — this directory is permanent and MUST NOT be deleted
 - ALWAYS place coverage artifacts (`htmlcov/`, `.coverage`, `.coverage.*`) in `cov_tests/` directory — after reporting, delete only the coverage artifacts, never the test files
 - ALWAYS place temporary test files (temp fixtures, mock data, scratch scripts) in `tmp/` directory — after testing, delete the entire `tmp/` directory
