@@ -38,7 +38,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **Fallback**: 仅当 Argus MCP 不可用时，委派 **reviewer** agent 进行独立代码审查
 8. 审查问题处理：
    - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
-   - **询问用户** — 以下特殊问题 MUST 通过对话框确认后再修复：架构级重构（模块拆分/合并）、公共 API 签名变更、删除现有功能或文件、性能优化涉及行为变更、第三方依赖替换
+   - **询问用户** — 以下特殊问题 MUST 通过对话框确认设计方案后再实现：新增 Feature（先展示设计方案，用户确认后再编码）、架构级重构（模块拆分/合并）、公共 API 签名变更、删除现有功能或文件、性能优化涉及行为变更、第三方依赖替换
    - 自动修复后 re-review（max 3 rounds）
 9. Delegate to **sdet** to write and run tests
 10. **sdet** MUST audit workspace for suspected test files (orphaned, misplaced, naming violations) and report findings
