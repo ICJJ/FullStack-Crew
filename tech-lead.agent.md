@@ -32,6 +32,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 ### Phase 2 — Implementation
 6. Delegate to **swe** to implement code based on the design
+   - **安全护栏**：委派时如果存在不可修改的关键文件（配置、数据库 migration、公共 API 契约等），在委派 prompt 中显式标注 `🔒 FROZEN: <file>` 列表，swe MUST NOT 修改这些文件
 
 ### Phase 3 — Quality Gate (Iterative)
 7. Code review — 默认使用 Argus MCP：`argus_scan` → `argus_check` → `argus_review`
