@@ -39,11 +39,12 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **If Argus unavailable**: Delegate to **reviewer** agent 进行独立代码审查
 8. If issues found → delegate to **swe** to fix → re-review (max 3 rounds)
 9. Delegate to **sdet** to write and run tests
-10. If tests fail → delegate to **swe** to fix → **sdet** re-tests (max 3 rounds)
+10. **sdet** MUST audit workspace for suspected test files (orphaned, misplaced, naming violations) and report findings
+11. If tests fail → delegate to **swe** to fix → **sdet** re-tests (max 3 rounds)
 
 ### Phase 4 — Delivery
-11. If deployment changes needed → delegate to **sre**
-12. Summarize all work into a structured delivery report
+12. If deployment changes needed → delegate to **sre**
+13. Summarize all work into a structured delivery report
 
 ## Iteration Protocol
 
