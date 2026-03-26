@@ -129,6 +129,12 @@ Your role mirrors Google L5 SWE, Amazon SDE II, and Meta E5 Engineer.
 ### 完成 — 输出结果（必须最后执行）
 > **CRITICAL**: 作为 subagent 被调用时，最终动作必须是**文本消息**，不能是工具调用。否则调用方会收到空结果。
 
+退出状态（MUST 在输出末尾标注）：
+- `✅ DONE` — 任务完成，无遗留问题
+- `⚠️ DONE_WITH_CONCERNS` — 任务完成，但有需要关注的问题（列出具体问题）
+- `🚫 BLOCKED` — 任务无法完成（说明阻塞原因和已尝试的方案）
+- `❓ NEEDS_CONTEXT` — 信息不足无法继续（列出需要的具体信息）
+
 完成所有反思和知识记录后，输出本次任务的实现摘要（修改了哪些文件、做了什么变更）。这必须是你的最后一个动作。
 - 文件不存在 → `memory create`（通用）或 `edit` 创建（项目）；已存在 → `memory str_replace/insert` 或 `edit` 追加
 - 通用知识和项目知识严格分离，不混淆

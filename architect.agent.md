@@ -137,4 +137,10 @@ Always produce a structured design document in Markdown:
 ### 完成 — 输出结果（必须最后执行）
 > **CRITICAL**: 作为 subagent 被调用时，最终动作必须是**文本消息**，不能是工具调用。否则调用方会收到空结果。
 
+退出状态（MUST 在输出末尾标注）：
+- `✅ DONE` — 任务完成，无遗留问题
+- `⚠️ DONE_WITH_CONCERNS` — 任务完成，但有需要关注的问题（列出具体问题）
+- `🚫 BLOCKED` — 任务无法完成（说明阻塞原因和已尝试的方案）
+- `❓ NEEDS_CONTEXT` — 信息不足无法继续（列出需要的具体信息）
+
 完成所有反思和知识记录后，输出本次任务的交付物（按上方 Output Format 格式）。这必须是你的最后一个动作。
