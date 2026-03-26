@@ -31,6 +31,8 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 - 不安全的反序列化
 - 敏感信息泄露到日志
 - CORS 配置过于宽松
+- **LLM/AI 安全**：用户输入直接拼入 prompt（prompt injection）、LLM 输出未消毒直接执行（code injection）、API key 硬编码在 prompt 模板中
+- **Supply Chain 安全**：未审计的第三方 MCP 工具/技能、未锁定版本的 AI SDK 依赖
 
 ### 4. Error Handling & Robustness
 - 异常是否在系统边界被正确捕获和处理
@@ -51,10 +53,11 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 3. **逐文件审查**：按依赖顺序（底层 → 上层）审查每个文件
 4. **交叉检查**：验证跨文件交互的一致性
 5. **汇总报告**：输出结构化审查报告
-6. **对抗性审查**：切换"攻击者视角"，针对变更代码思考：
+6. **对抗性审查**（Medium+ diff 时由 tech-lead 触发）：切换"攻击者视角"，针对变更代码思考：
    - 如果我要让这段代码崩溃，我会传什么输入？
    - 如果我要窃取数据，这里有什么突破口？
    - 如果我要触发竞态条件或资源泄漏，怎么做？
+   - 如果代码涉及 LLM 调用，是否存在 prompt injection 或输出注入？
    - 将发现的问题补充到审查报告的 🔴 Critical 或 ⚠️ Warning 中
 
 ## Output Format

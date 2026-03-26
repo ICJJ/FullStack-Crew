@@ -29,34 +29,53 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 3. Check and create `.github/learnings/<agent>.md` files for self and all sub-agents if they don't exist (tech-lead, swe, sdet, sre, architect, pm)
 4. If requirements are unclear → delegate to **pm** for research and PRD
 5. Delegate to **architect** for system design and technical decisions
+6. **Spec Review Loop** — 文档完成后独立审查：
+   - pm 完成 PRD 后 → 委派 **architect** 做 feasibility review（技术可行性）
+   - architect 完成 Design Doc 后 → 委派 **reviewer** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
+   - 质量分 < 7/10 → 返回修订，max 3 轮，连续两轮相同问题 → 停止并标记为 "Reviewer Concerns"
 
 ### Phase 2 — Implementation
-6. Delegate to **swe** to implement code based on the design
+7. Delegate to **swe** to implement code based on the design
    - **安全护栏**：委派时如果存在不可修改的关键文件（配置、数据库 migration、公共 API 契约等），在委派 prompt 中显式标注 `🔒 FROZEN: <file>` 列表，swe MUST NOT 修改这些文件
+   - **Bug Fix 委派**：必须附加 `🔍 INVESTIGATE-FIRST` 标志，要求 swe 先根因调查再修复
 
 ### Phase 3 — Quality Gate (Iterative)
-7. Code review — 默认使用 Argus MCP：`argus_scan` → `argus_check` → `argus_review`
+8. Code review — 按 diff 大小分层审查：
+   - **Small diff (<50 行)**：仅 Argus MCP `argus_scan` → `argus_review`
+   - **Medium diff (50-199 行)**：Argus + 委派 **reviewer** 对抗性审查
+   - **Large diff (200+ 行)**：Argus + **reviewer** + **swe**（只读攻击者视角）三方审查
    - **Fallback**: 仅当 Argus MCP 不可用时，委派 **reviewer** agent 进行独立代码审查
-8. 审查问题处理：
+9. 审查问题处理：
    - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
+   - **白名单豁免** — 以下操作无需确认：`rm -rf node_modules`、`rm -rf __pycache__`、`rm -rf .pytest_cache`、`rm -rf dist/` 等构建产物清理
    - **询问用户** — 以下特殊问题 MUST 通过对话框确认设计方案后再实现：新增 Feature（先展示设计方案，用户确认后再编码）、架构级重构（模块拆分/合并）、公共 API 签名变更、删除现有功能或文件、性能优化涉及行为变更、第三方依赖替换
    - 自动修复后 re-review（max 3 rounds）
-9. Delegate to **sdet** to write and run tests
-10. **sdet** MUST audit workspace for suspected test files (orphaned, misplaced, naming violations) and report findings
-11. If tests fail → delegate to **swe** to fix → **sdet** re-tests (max 3 rounds)
+10. Delegate to **sdet** to write and run tests
+11. **sdet** MUST audit workspace for suspected test files (orphaned, misplaced, naming violations) and report findings
+12. **sdet** 测试失败归属 — 首次发现失败时，在 base branch 上重跑失败用例，区分 `[NEW]`（本次变更引入）vs `[PRE-EXISTING]`（已存在），仅对 `[NEW]` 触发 swe 修复循环
+13. If tests fail (`[NEW]` only) → delegate to **swe** to fix → **sdet** re-tests (max 3 rounds)
 
 ### Phase 4 — Delivery
-12. If deployment changes needed → delegate to **sre**
-13. Summarize all work into a structured delivery report
+14. If deployment changes needed → delegate to **sre**
+    - **Canary Window（可选）**：部署后执行 3-5 次间隔检查（health endpoint + 基本功能验证），出现异常时建议 rollback
+15. Summarize all work into a structured delivery report
+    - 附加 **Decision Summary**：N 个自动决策，M 个用户确认决策
 
 ## Iteration Protocol
 
 ```
-WHILE quality_gate_not_passed AND round < 3:
+wtf = 0
+WHILE quality_gate_not_passed AND round < 3 AND wtf < 20:
     auto-fix: swe fixes common issues without asking user
     ask-user: prompt user for architectural/breaking changes
     re-run Argus review (or reviewer fallback)
+    # WTF-Likelihood 计算
+    IF swe_fix_touched > 3 files: wtf += 5
+    IF swe_touched_unrelated_files: wtf += 20
+    IF revert_occurred: wtf += 15
     round += 1
+IF wtf >= 20:
+    STOP — 报告用户"修复循环复杂度过高，建议人工介入"
 IF round >= 3:
     Report remaining issues to user for decision
 ```

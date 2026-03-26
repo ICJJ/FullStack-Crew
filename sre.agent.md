@@ -56,7 +56,13 @@ Infrastructure changes should include:
 3. **Implement**: Make targeted changes to infrastructure files
 4. **Validate**: Run builds, test containers locally, verify pipeline syntax
 5. **Verify**: 部署/启动服务后，**必须验证服务可用性**（health check endpoint、smoke test、日志确认无报错）。未验证可用性的部署视为未完成
-6. **Document**: Update README or docs with any new setup/deployment steps
+6. **Canary Window（可选）**：tech-lead 要求时，部署后执行 3-5 次间隔检查：
+   - 检查 health endpoint 响应状态
+   - 验证基本功能（关键 API 可达）
+   - 仅对连续 2+ 次检查持续的问题告警（排除瞬时抖动）
+   - 输出 HEALTHY / DEGRADED / BROKEN 状态
+   - 出现 BROKEN → 建议执行 rollback
+7. **Document**: Update README or docs with any new setup/deployment steps
 
 ## Constraints
 - DO NOT modify application/business logic — only infrastructure and operational code
