@@ -54,6 +54,8 @@ Your role mirrors Google L5 SWE, Amazon SDE II, and Meta E5 Engineer.
 - DO NOT skip reading existing code before making changes
 - ALWAYS match the project's existing code style and conventions
 - ALWAYS handle errors gracefully at system boundaries
+- ALWAYS list affected files before batch delete/rename operations — confirm the list is correct before executing
+- NEVER modify files marked as 🔒 FROZEN by tech-lead in the delegation prompt
 
 ## Self-Learning Protocol
 

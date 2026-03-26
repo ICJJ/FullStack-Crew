@@ -50,6 +50,15 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 |-----------|------|--------|--------|
 | F001 | 示例功能 | 92% | test_example.py |
 
+### 6. 浏览器 E2E 验证（可选）
+当被测项目是 Web 应用时，可使用 `openBrowserPage` 工具进行真实浏览器验证：
+- 打开目标页面，验证关键 UI 元素是否渲染
+- 执行核心用户流程（登录、表单提交、导航等）
+- 截图记录验证结果
+- 检查控制台是否有 JS 错误
+
+触发条件：tech-lead 在委派时显式要求"浏览器 QA"，或项目是前端/全栈 Web 应用
+
 ## Output Format
 Bug reports should follow this structure:
 ```markdown

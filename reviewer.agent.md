@@ -51,6 +51,11 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 3. **逐文件审查**：按依赖顺序（底层 → 上层）审查每个文件
 4. **交叉检查**：验证跨文件交互的一致性
 5. **汇总报告**：输出结构化审查报告
+6. **对抗性审查**：切换"攻击者视角"，针对变更代码思考：
+   - 如果我要让这段代码崩溃，我会传什么输入？
+   - 如果我要窃取数据，这里有什么突破口？
+   - 如果我要触发竞态条件或资源泄漏，怎么做？
+   - 将发现的问题补充到审查报告的 🔴 Critical 或 ⚠️ Warning 中
 
 ## Output Format
 ```markdown
