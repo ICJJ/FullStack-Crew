@@ -63,7 +63,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 11. Delegate to **sdet** to write and run tests
 12. **sdet** MUST audit workspace and clean up non-deliverable files:
     - **白名单自动清理**：`cov_tests/` 内覆盖率产物（`htmlcov/`, `.coverage`, `.coverage.*`）、`tmp/`（整目录）、`__pycache__/`、`.pytest_cache/`、`*.pyc`、pytest 误导出 — 无需确认
-    - **禁止区自动迁移**：发现 `cov_tests/` 和 `tmp/` 之外的测试文件 → 自动迁移到 `cov_tests/`，无需确认
+    - **禁止区自动迁移**（SDET 直接执行，不得询问确认）：发现 `cov_tests/` 和 `tmp/` 之外的测试文件（含 `tests/` 目录）→ 自动迁移到 `cov_tests/`，同步更新 `pyproject.toml` testpaths
     - **灰名单上报**：孤立测试文件、命名违规 — 报告 tech-lead 决定处理方式
     - **时序**：在所有测试执行完成后执行，覆盖测试过程中产生的文件
 13. **sdet** 测试失败归属 — 首次发现失败时，在 base branch 上重跑失败用例，区分 `[NEW]`（本次变更引入）vs `[PRE-EXISTING]`（已存在），仅对 `[NEW]` 触发 swe 修复循环
