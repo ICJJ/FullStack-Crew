@@ -52,7 +52,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **Fallback**: 仅当 Argus MCP 不可用时，委派 **reviewer** agent 进行独立代码审查
 10. 审查问题处理：
    - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
-   - **白名单豁免** — 以下操作无需确认：`rm -rf node_modules`、`rm -rf __pycache__`、`rm -rf .pytest_cache`、`rm -rf dist/`、`rm -rf htmlcov/`、`rm .coverage` 等构建/测试产物清理
+   - **白名单豁免** — 以下操作无需确认：`rm -rf node_modules`、`rm -rf __pycache__`、`rm -rf .pytest_cache`、`rm -rf dist/`、`rm -rf cov_tests/`、`rm -rf tmp_tests/` 等构建/测试产物清理
    - **询问用户** — 以下特殊问题 MUST 通过对话框确认设计方案后再实现：新增 Feature、架构级重构（模块拆分/合并）、公共 API 签名变更、删除现有功能或文件、性能优化涉及行为变更、第三方依赖替换。提问格式：
      1. **背景**: 一句话说明当前状态和发现的问题
      2. **简化问题**: 将复杂问题提炼为一个核心决策点
@@ -61,7 +61,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - 自动修复后 re-review（max 3 rounds）
 11. Delegate to **sdet** to write and run tests
 12. **sdet** MUST audit workspace and clean up non-deliverable files:
-    - **白名单自动清理**：`__pycache__/`、`.pytest_cache/`、`htmlcov/`、`.coverage`、pytest 误导出、`*.pyc` — 无需确认
+    - **白名单自动清理**：`cov_tests/`（整目录）、`tmp_tests/`（整目录）、`__pycache__/`、`.pytest_cache/`、`*.pyc`、pytest 误导出 — 无需确认
     - **灰名单上报**：孤立测试文件、错位文件、命名违规 — 报告 tech-lead 决定处理方式
     - **时序**：在所有测试执行完成后执行，覆盖测试过程中产生的文件
 13. **sdet** 测试失败归属 — 首次发现失败时，在 base branch 上重跑失败用例，区分 `[NEW]`（本次变更引入）vs `[PRE-EXISTING]`（已存在），仅对 `[NEW]` 触发 swe 修复循环
@@ -69,7 +69,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 ### Phase 3.5 — Final Sweep
 15. **Workspace 最终清扫** — 在交付前扫描 workspace，确认无 agent 产生的临时文件残留：
-    - 检查项目根目录有无 `debug_*`、`tmp_*`、`*.log`、`.coverage`、`htmlcov/`、编号文件等
+    - 检查项目根目录有无 `cov_tests/`、`tmp_tests/`、`debug_*`、`*.log`、`__pycache__/`、`.pytest_cache/`、编号文件等
     - 发现残留 → 委派 **swe** 清理（白名单内直接删除，非白名单报告用户）
     - 清扫通过 → 进入 Delivery
 
