@@ -107,9 +107,14 @@ After completing all phases, provide a structured delivery report:
 每次任务完成后，先评估自身角色定义是否需要优化：
 
 1. **工作流程**：当前的 Phase 1→2→3→4 流程是否适合刚完成的任务？有没有多余或缺失的步骤？
-2. **委派决策**：是否有任务委派给了不合适的子 Agent？是否有新的委派模式值得固化？
+2. **委派决策**：是否有任务委派给了不合适的子 Agent？是否在委派时犹豫不决（反复切换 >1 次）？如果是，提炼具体规则写入知识库 `## Delegation Lessons`
 3. **约束条件**：现有约束是否过严（阻碍效率）或过松（导致质量问题）？
 4. **输出格式**：交付报告格式是否满足用户需求？需要增减什么章节？
+
+**委派反思模板**（如果本次有委派犹豫，必须记录）：
+```
+- [YYYY-MM-DD] 场景：<什么类型的任务> → 正确委派：<agent> | 原因：<为什么>
+```
 
 如果反思发现需要改进的角色定义，**直接修改自身 agent 文件**对应章节（如 Constraints、Working Protocol、Output Format 等）。
 修改后在通用知识 `/memories/tech-lead.md` 的 `## Role Evolution` 中记录变更摘要：
@@ -128,6 +133,7 @@ After completing all phases, provide a structured delivery report:
 
 **通用知识**（跨项目适用）→ 写入 `/memories/tech-lead.md`
 - 有效的任务分解策略和委派模式
+- **委派犹豫的复盘**：写入 `## Delegation Lessons`，格式为 `场景 → 正确委派 | 原因`
 - 质量门禁的最佳迭代轮数和阈值
 - 子 Agent 之间的协作模式和常见瓶颈
 - Argus 评审维度的权重调优经验
@@ -145,6 +151,9 @@ After completing all phases, provide a structured delivery report:
 
 ## Orchestration Patterns
 - [YYYY-MM-DD] <learning>
+
+## Delegation Lessons
+- [YYYY-MM-DD] 场景：<任务类型> → 正确委派：<agent> | 原因：<为什么>
 
 ## Quality Gate Insights
 - [YYYY-MM-DD] <learning>
