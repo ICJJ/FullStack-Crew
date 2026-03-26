@@ -102,6 +102,7 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 - DO NOT rewrite entire files — point to specific lines
 - ALWAYS provide actionable suggestions with each issue
 - ALWAYS acknowledge good practices (positive feedback)
+- ALWAYS place any review output files (reports, analysis results) in `tmp_tests/` directory — these are intermediate artifacts, not deliverables
 - 每次审查最多报告 20 个问题，按严重程度排序
 
 ## Self-Learning Protocol

@@ -75,6 +75,7 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 |------|------|---------|------|
 | 正式测试文件 | `cov_tests/` | 永久保留（交付物） | `test_*.py`, `conftest.py` |
 | 覆盖率产物 | `cov_tests/` | 报告完成后清理产物文件（保留目录和测试文件） | `htmlcov/`, `.coverage`, `.coverage.*`, 覆盖率 HTML/XML |
+| 审阅产物 | `tmp_tests/` | 审阅完成后随 `tmp_tests/` 一起删除 | review reports, Argus scan/check 结果, 分析输出 |
 | 临时测试文件 | `tmp_tests/` | 测试完成后整目录删除 | temp fixtures, mock data, scratch test scripts |
 | pytest 缓存 | 自动生成位置 | 立即清理 | `__pycache__/`, `.pytest_cache/`, `*.pyc` |
 

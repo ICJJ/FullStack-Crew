@@ -50,6 +50,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **Medium diff (50-199 行)**：Argus + 委派 **reviewer** 对抗性审查
    - **Large diff (200+ 行)**：Argus + **reviewer** + **swe**（只读攻击者视角）三方审查
    - **Fallback**: 仅当 Argus MCP 不可用时，委派 **reviewer** agent 进行独立代码审查
+   - **审阅产物放置**：审查报告、扫描结果等中间文件统一放入 `tmp_tests/`，随最终清扫一起删除
 10. 审查问题处理：
    - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
    - **白名单豁免** — 以下操作无需确认：`rm -rf node_modules`、`rm -rf __pycache__`、`rm -rf .pytest_cache`、`rm -rf dist/`、`rm -rf tmp_tests/`、清理 `cov_tests/` 内覆盖率产物 等构建/测试产物清理
