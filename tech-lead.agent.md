@@ -78,6 +78,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **扫描范围**：调用 `get_errors` 时 **不传 filePaths 参数**（获取全项目错误）或传入**整个源码目录路径**（如 `app/`、`src/`），**严禁只传单个文件** — 单文件扫描会遗漏其他被修改文件的错误
    - 交付标准：**零 error**（warning 可接受）；仅关注非 `.md` 文件的 error
    - 发现 error → 委派 **swe** 修复 → **触发重新验证**（对每个被修改的文件执行 `read_file` 强制 VS Code 语言服务器重新解析）→ 重新 `get_errors`（同样全目录扫描）验证（max 3 rounds）
+   - **`# pyright: ignore` / `type: ignore` 使用策略**：MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。swe 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
    - 3 轮未清零 → 标记为 `🛑 ESCALATED`，报告用户
 9. Code review — 按 diff 大小分层审查：
    - **Small diff (<50 行)**：仅 Argus MCP `argus_scan` → `argus_review`
@@ -183,6 +184,10 @@ After completing all phases, provide a structured delivery report:
 - 测试覆盖率变化（before → after）
 - 质量门禁轮数（实际迭代次数 / max 3）
 - Decision Summary：N 个自动决策，M 个用户确认决策
+### 类型抑制统计（Type Suppress Report）
+- 新增 `# pyright: ignore` / `# type: ignore` 总数：N 处
+- 逐条列表：`<file>#L<line>` — 原因
+- 如无新增则标注「本次无新增类型抑制」
 ### 质量检查结果
 ### 遗留问题（如有）
 ```
