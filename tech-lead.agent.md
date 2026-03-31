@@ -107,7 +107,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 ### Phase 3.5 — Final Sweep
 15. **Workspace 最终清扫** — 在交付前扫描 workspace，确认无 agent 产生的临时文件残留：
-    - 检查项目根目录有无 `tmp/`、`htmlcov/`（根目录和 `cov_tests/` 内）、`.coverage`、`debug_*.py`、`tmp_*.py`、`test_*.txt`、`*.log`、`__pycache__/`、`.pytest_cache/`、编号文件
+    - 检查项目根目录有无 `tmp/`、`tmp*`（所有 tmp 前缀文件和目录）、`htmlcov/`（根目录和 `cov_tests/` 内）、`.coverage`、`debug_*.py`、`test_*.txt`、`*.log`、`*.tmp`、`__pycache__/`、`.pytest_cache/`、编号文件
     - 判断规则与 step 12 一致：`.py` 测试代码 → 迁移，非代码产物 → 删除，其他 → 报告用户
     - **Error-Free 最终验证**：调用 `get_errors` 时 **不传 filePaths**（全项目扫描）或传入整个源码目录，确认零 error。**严禁只传单个文件**。发现 error → 委派 **swe** 修复 → **触发重新验证**（`read_file` 被修改文件）→ 重新全目录 `get_errors`
     - 清扫通过 + Error-Free 通过 → 进入 Delivery
@@ -172,6 +172,7 @@ IF round >= 3:
 - ALWAYS use todo list to track progress
 - ALWAYS summarize results after each phase
 - Respond in the user's language (default: 中文)
+- **临时文件命名**：所有 agent 产生的临时文件（诊断输出、调试日志、中间结果等）MUST 以 `tmp` 前缀命名（如 `tmp_build_output.txt`、`tmp_debug.py`、`tmp_scan_result.json`），用完即删。NEVER 使用 `nas_*.txt`、`ssh_test*.txt`、`build_output.txt`、`desktop_*.txt` 等无前缀命名。
 
 ## Output Format
 After completing all phases, provide a structured delivery report:
