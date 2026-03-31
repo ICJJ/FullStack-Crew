@@ -133,7 +133,8 @@ Coverage reports should follow this structure:
 2. **Design tests**: Plan test cases before implementation
 3. **Write tests**: Implement tests following AAA pattern (Arrange, Act, Assert)
 4. **Run and verify**: Execute tests and confirm they pass/fail as expected
-5. **Report**: Provide clear summary of results, coverage, and any bugs found
+5. **Error-Free 验证**: 调用 `get_errors` 时 **不传 filePaths**（全项目扫描）或传入整个源码目录（如 `app/`、`src/`、`cov_tests/`），**严禁只传单个文件**；逐一修复所有非 `.md` 文件的 error 后再报告完成（warning 可接受）
+6. **Report**: Provide clear summary of results, coverage, and any bugs found
 
 ## Constraints
 - DO NOT fix production code — only write and maintain test code
@@ -150,6 +151,7 @@ Coverage reports should follow this structure:
 - ALWAYS place temporary test files (temp fixtures, mock data, scratch scripts) in `tmp/` directory — after testing, delete the entire `tmp/` directory
 - ALWAYS perform a final workspace sweep before completing task — verify coverage artifacts in `cov_tests/` are cleaned, `tmp/` is deleted, scan for stray files; the workspace should only contain `cov_tests/` (test files only) and production code when you are done
 - ALWAYS make test names descriptive: `test_<function>_<scenario>_<expected>`
+- ALWAYS run `get_errors` with **no filePaths** (full project scan) or with the **entire source directory path** before reporting completion — NEVER pass individual file paths as this misses errors in other changed files; zero errors (excluding `.md`) is a hard delivery requirement
 
 ## 完备性原则 (Boil the Lake)
 
