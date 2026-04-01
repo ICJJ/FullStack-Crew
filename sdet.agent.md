@@ -81,8 +81,8 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 |------|------|---------|------|
 | 正式测试文件 | `cov_tests/` | 永久保留（交付物） | `test_*.py`, `conftest.py` |
 | 覆盖率产物 | `cov_tests/` | 报告完成后清理产物文件（保留目录和测试文件） | `htmlcov/`, `.coverage`, `.coverage.*`, 覆盖率 HTML/XML |
-| 审阅产物 | `tmp/` | 审阅完成后随 `tmp/` 一起删除 | review reports, Argus scan/check 结果, 分析输出 |
-| 临时测试文件 | `tmp/` | 测试完成后整目录删除 | temp fixtures, mock data, scratch test scripts |
+| 审阅产物 | `tmp/` | 审阅完成后仅删除本轮创建且可证明为非交付物的子项 | review reports, Argus scan/check 结果, 分析输出 |
+| 临时测试文件 | `tmp/` | 测试完成后仅删除本轮创建且可证明为非交付物的子项 | temp fixtures, mock data, scratch test scripts |
 | pytest 缓存 | 自动生成位置 | 立即清理 | `__pycache__/`, `.pytest_cache/`, `*.pyc` |
 
 #### 清理流程
@@ -90,13 +90,14 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 2. **判断优先级**（遇到文件时按此顺序判定，first match wins）：
    - ① 文件扩展名是 `.py` 且匹配 `test_*.py` / `*_test.py` / `conftest.py` → **测试代码** → 执行迁移规则（step 4）
    - ② 文件扩展名是 `.txt` / `.log` / `.xml` / `.html` → **非代码产物** → 执行删除规则（step 3）
-   - ③ 目录名匹配 `htmlcov/` / `__pycache__/` / `.pytest_cache/` / `tmp/` → **产物目录** → 执行删除规则（step 3）
+   - ③ 目录名匹配 `htmlcov/` / `__pycache__/` / `.pytest_cache/` → **产物目录** → 执行删除规则（step 3）；目录名匹配 `tmp/` → 仅当其子项可证明为本轮创建且非交付物时才可删除对应子项，否则上报 tech-lead
    - ④ 其他 → **灰名单** → 报告 tech-lead
 3. **白名单自动删除**（直接删除，NEVER 询问用户）：
    - `cov_tests/` 内：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml`
    - 项目根目录内：`htmlcov/`（pytest-cov 默认输出位置）、`.coverage`、`test_*.txt`、`pytest_result.txt`、`*_results.txt`、`cx_*.txt`、`sync_funcs.txt`、`models_list.txt`、`tmp_*.py`、`debug_*.py`、`*.log`
-   - 任意位置：`__pycache__/`、`.pytest_cache/`、`*.pyc`、`tmp/`（整目录）
+   - 任意位置：`__pycache__/`、`.pytest_cache/`、`*.pyc`，以及 `tmp/` 下仅限“本轮创建且可证明为非交付物”的子项
    - pytest 误导出：意外创建的目录/文件（如 `SSM/`、编号文件 `1`、`2`）
+   - 发现预存 `tmp/`、归属不明内容，或无法证明为本轮创建的 `tmp/` 子项 → 停止删除并报告 tech-lead
 4. **禁止区自动迁移**（直接执行，NEVER 询问用户）：
    - 触发条件：测试代码文件（`.py`）位于 `cov_tests/` 和 `tmp/` 之外（含 `tests/`、项目根目录等）
    - 执行步骤：① 将文件移动到 `cov_tests/` ② 更新 `pyproject.toml` 的 `testpaths` ③ 更新 `conftest.py` 中的相对导入路径 ④ 运行 `pytest cov_tests/ --co -q` 验证迁移不破坏测试发现
@@ -146,10 +147,10 @@ Coverage reports should follow this structure:
 - ALWAYS clean up pytest misdirected output artifacts after test runs — scan project root for unexpected files/dirs created by pytest output redirection errors (e.g. `SSM/`, numbered files like `1`, `2`), auto-delete them without asking
 - NEVER place test code files (`test_*.py`, `conftest.py`, `*_test.py`) outside `cov_tests/` or `tmp/` — `tests/`, project root, or any other location is forbidden; if an existing project has tests elsewhere, run tests first with existing paths, then migrate to `cov_tests/`
 - NEVER ask "需要我清理吗？" or "需要我迁移吗？" — 白名单删除和禁止区迁移是强制动作，发现即执行；唯一例外：迁移后 pytest --co 失败时回退并报告 tech-lead
-- ALWAYS place test files (`test_*.py`, `conftest.py`) in `cov_tests/` directory — this directory is permanent and MUST NOT be deleted
+- ALWAYS place test files (`test_*.py`, `*_test.py`, `conftest.py`) in `cov_tests/` directory — this directory is permanent and MUST NOT be deleted
 - ALWAYS place coverage artifacts (`htmlcov/`, `.coverage`, `.coverage.*`) in `cov_tests/` directory — after reporting, delete only the coverage artifacts, never the test files
-- ALWAYS place temporary test files (temp fixtures, mock data, scratch scripts) in `tmp/` directory — after testing, delete the entire `tmp/` directory
-- ALWAYS perform a final workspace sweep before completing task — verify coverage artifacts in `cov_tests/` are cleaned, `tmp/` is deleted, scan for stray files; the workspace should only contain `cov_tests/` (test files only) and production code when you are done
+- ALWAYS place temporary test files (temp fixtures, mock data, scratch scripts) in `tmp/` directory — after testing, delete only the `tmp/` sub-items created in this run that can be proven non-deliverable; pre-existing `tmp/` content or unclear ownership must be reported, not deleted wholesale
+- ALWAYS perform a final workspace sweep before completing task — verify coverage artifacts in `cov_tests/` are cleaned, only eligible `tmp/` sub-items from this run were removed, and any pre-existing or unclear `tmp/` content was reported; the workspace should retain deliverables plus any reported greylist items
 - ALWAYS make test names descriptive: `test_<function>_<scenario>_<expected>`
 - ALWAYS run `get_errors` with **no filePaths** (full project scan) or with the **entire source directory path** before reporting completion — NEVER pass individual file paths as this misses errors in other changed files; zero errors (excluding `.md`) is a hard delivery requirement
 
