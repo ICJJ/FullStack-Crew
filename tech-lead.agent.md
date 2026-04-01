@@ -89,6 +89,7 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
    - **Medium diff (50-199 行)**：Argus + 委派 **reviewer** 对抗性审查
    - **Large diff (200+ 行)**：Argus + **reviewer** + **swe**（只读攻击者视角）三方审查
    - **Fallback**: 仅当 Argus MCP 不可用时，委派 **reviewer** agent 进行独立代码审查
+  - **Re-review 一致性**：每次修复后 MUST 按初始 diff 档位重复同等级审查；Small 始终走 Small，Medium 始终走 Medium，Large 始终走 Large，除非用户明确缩 scope 并重置本轮任务
    - **审阅产物放置**：审查报告、扫描结果等中间文件统一放入 `tmp/`，随最终清扫一起删除
 10. 审查问题处理：
    - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring（when applicable，例如 Python repositories）、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
@@ -101,8 +102,8 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
    - 自动修复后 re-review，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
 11. Delegate to **sdet** to write and run tests
 12. **sdet** MUST audit workspace and clean up non-deliverable files:
-  - **判断规则**：when applicable（如 Python repositories），`.py` 且匹配 `test_*`/`conftest` → 测试代码（迁移）；明确的 agent/构建临时产物模式（如 `tmp*`、`.pytest_cache/`、`__pycache__/`、`htmlcov/`、`.coverage`、`debug_*`、明确的覆盖率产物）→ 非代码（删除）；普通 `.txt`/`.log` 和未知目录默认 → 灰名单（上报）
-  - **白名单自动清理**：覆盖率产物（`htmlcov/`、`.coverage`，含项目根目录）、`tmp/`（整目录）及根目录 `tmp*`、`__pycache__/`、`.pytest_cache/`、根目录 `debug_*.py`、根目录 `*.tmp`、明确的覆盖率产物（如根目录 `coverage.xml`、`pytest.xml`） — when applicable（如 Python repositories）无需确认；普通 `.txt`/`.log` 和未知目录不自动删除
+  - **判断规则**：when applicable（如 Python repositories），`.py` 且匹配 `test_*`/`conftest` → 测试代码（迁移）；专用 `tmp/` 目录与明确定义的构建/测试产物模式（如 `.pytest_cache/`、`__pycache__/`、`htmlcov/`、`.coverage`、`debug_*.py`、明确的覆盖率产物）→ 非代码（删除）；未知 `tmp*` 文件/目录、普通 `.txt`/`.log` 和未知目录默认 → 灰名单（上报）
+  - **白名单自动清理**：覆盖率产物（`htmlcov/`、`.coverage`，含项目根目录）、`tmp/`（整目录）、`__pycache__/`、`.pytest_cache/`、根目录 `debug_*.py`、根目录 `*.tmp`、明确的覆盖率产物（如根目录 `coverage.xml`、`pytest.xml`） — when applicable（如 Python repositories）无需确认；未知 `tmp*`、普通 `.txt`/`.log` 和未知目录不自动删除
    - **条件式测试迁移**：先探测仓库是否已采用 `cov_tests/` 约定（如目录已存在、`pyproject.toml`/pytest 配置已指向该路径，或仓库内已有同类测试迁移规则）；仅在匹配时才允许将位于 `cov_tests/` 之外的测试代码文件（`.py`）迁移到 `cov_tests/`，并更新相应 testpaths 后用 `pytest --co` 验证；未匹配时只报告，不自动迁移；迁移失败则回退并标记 `🛑 MIGRATION_BLOCKED`
    - **灰名单上报**：孤立测试文件、命名违规、未知文件 — 报告 tech-lead 决定
    - **时序**：先用现有路径跑完测试，再执行清理和迁移
@@ -111,7 +112,7 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
 
 ### Phase 3.5 — Final Sweep
 15. **Workspace 最终清扫** — 在交付前扫描 workspace，确认无 agent 产生的临时文件残留：
-  - 检查项目根目录有无 `tmp/`、`tmp*`（所有 tmp 前缀文件和目录）、`htmlcov/`（根目录和已配置测试目录内）、`.coverage`、`debug_*.py`、`*.tmp`、`__pycache__/`、`.pytest_cache/`、明确的覆盖率产物（如 `coverage.xml`、`pytest.xml`）、编号文件；上述 Python/pytest 相关项仅在适用时（如 Python repositories）检查；普通 `.txt`/`.log` 和未知目录仅灰名单上报
+  - 检查项目根目录有无 `tmp/`、`htmlcov/`（根目录和已配置测试目录内）、`.coverage`、`debug_*.py`、`*.tmp`、`__pycache__/`、`.pytest_cache/`、明确的覆盖率产物（如 `coverage.xml`、`pytest.xml`）、编号文件；未知 `tmp*` 文件/目录、普通 `.txt`/`.log` 和未知目录仅灰名单上报；上述 Python/pytest 相关项仅在适用时（如 Python repositories）检查
   - 判断规则与 step 12 一致：`.py` 测试代码仅在仓库已采用 `cov_tests/` 约定时迁移，否则报告；明确的 agent/构建临时产物 → 删除，其他 → 报告用户
    - **Error-Free 最终验证**：调用 `read/problems` 时 **不传 filePaths**（全项目扫描）或传入整个源码目录，确认零 error。**严禁只传单个文件**。发现 error → 委派 **swe** 修复 → **触发重新验证**（`read/readFile` 读取被修改文件）→ 重新全目录 `read/problems`
    - 清扫通过 + Error-Free 通过 → 进入 Delivery
@@ -127,16 +128,16 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
 wtf = 0
 round = 0
 clean_passes = 0
-WHILE quality_gate_not_stable AND round < 6 AND wtf < 20 AND clean_passes < 3:
-  run quality gate (review / errors / tests)
-  # clean_passes 只在完整一轮质量门禁全部通过且本轮无需任何修改时累加一次
+WHILE clean_passes < 3 AND round < 6 AND wtf < 20:
+  run full quality gate (scope drift / errors / review / tests when applicable)
+  # 稳定通过 = 连续 3 轮完整质量门禁全部通过且本轮无需任何修改
   IF no_changes_required:
     clean_passes += 1
   ELSE:
     clean_passes = 0
     auto-fix: swe fixes common issues without asking user
     ask-user: prompt user for architectural/breaking changes
-  re-run Argus review (or reviewer fallback)
+    re-run the same quality gate at the original review tier for this task
   # WTF-Likelihood 计算
   IF swe_fix_touched > 3 files: wtf += 5
   IF swe_touched_unrelated_files: wtf += 20
@@ -187,7 +188,7 @@ IF round >= 6:
 - ALWAYS summarize results after each phase
 - Apply Python-specific rules only when applicable (for example, Python repositories using pytest/pyright)
 - Respond in the user's language (default: 中文)
-- **临时文件命名**：所有 agent 产生的临时文件（诊断输出、调试日志、中间结果等）MUST 以 `tmp` 前缀命名（如 `tmp_build_output.txt`、`tmp_debug.py`、`tmp_scan_result.json`），用完即删。NEVER 使用 `nas_*.txt`、`ssh_test*.txt`、`build_output.txt`、`desktop_*.txt` 等无前缀命名。
+- **临时文件命名**：所有 agent 产生的临时文件（诊断输出、调试日志、中间结果等）MUST 放入专用 `tmp/` 目录（如 `tmp/build_output.txt`、`tmp/debug.py`、`tmp/scan_result.json`），用完即删。NEVER 在根目录创建未知 `tmp*` 文件/目录，也 NEVER 使用 `nas_*.txt`、`ssh_test*.txt`、`build_output.txt`、`desktop_*.txt` 等无约束命名。
 
 ## Output Format
 After completing all phases, provide a structured delivery report:
