@@ -47,7 +47,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - pm 完成 PRD 后 → 委派 **architect** 做 feasibility review（技术可行性）
    - architect 完成 Design Doc 后 → 委派 **reviewer** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
   - reviewer 结论为 `不通过` 或存在 `🔴 Critical` → 返回修订
-  - 任一轮发生修订 → `clean_passes = 0`；`clean_passes >= 3` 视为文档门禁稳定通过；总轮次达到 6 或连续两轮 findings 完全相同 → 停止并标记为 `Reviewer Concerns`
+  - 任一轮发生修订 → 按 Iteration Protocol 持续迭代；总轮次达到 6 或连续两轮 findings 完全相同 → 停止并标记为 `Reviewer Concerns`
 
 ### Phase 2 — Implementation
 7. Delegate to **swe** to implement code based on the design
@@ -78,8 +78,8 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 8.5. **Error-Free 检查** — 使用 `read/problems` 获取编译/lint 错误：
   - **扫描范围**：调用 `read/problems` 时 **不传 filePaths 参数**（获取全项目错误）或传入**整个源码目录路径**（如 `app/`、`src/`），**严禁只传单个文件** — 单文件扫描会遗漏其他被修改文件的错误
    - 交付标准：**零 error**（warning 可接受）；仅关注非 `.md` 文件的 error
-  - 发现 error → 委派 **swe** 修复 → **触发重新验证**（对每个被修改的文件执行 `read/readFile` 强制 VS Code 语言服务器重新解析）→ 重新 `read/problems`（同样全目录扫描）验证；发生修复则 `clean_passes = 0`，直到 `clean_passes >= 3` 或总轮次达到 6
-  - **`# pyright: ignore` / `type: ignore` 使用策略**：仅在适用时（如 Python repositories）启用；MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。swe 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
+  - 发现 error → 委派 **swe** 修复 → **触发重新验证**（对每个被修改的文件执行 `read/readFile` 强制 VS Code 语言服务器重新解析）→ 重新 `read/problems`（同样全目录扫描）验证，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
+  - **`# pyright: ignore` / `type: ignore` 使用策略**：仅在适用时启用；MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。swe 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
   - 6 轮内仍未达到稳定通过 → 标记为 `🛑 ESCALATED`，报告用户
 9. Code review — 按 diff 大小分层审查：
    - **Small diff (<50 行)**：仅 Argus MCP `argus_scan` → `argus_review`
@@ -88,30 +88,30 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **Fallback**: 仅当 Argus MCP 不可用时，委派 **reviewer** agent 进行独立代码审查
    - **审阅产物放置**：审查报告、扫描结果等中间文件统一放入 `tmp/`，随最终清扫一起删除
 10. 审查问题处理：
-  - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring（when applicable，例如 Python repositories）、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
+   - **自动修复（默认）** — 常规问题直接委派 **swe** 修复，无需询问用户：代码风格、命名不规范、缺少类型注解/docstring（when applicable，例如 Python repositories）、未使用的 import/变量、异常吞没（`except: pass`）、依赖版本未锁定、简单安全问题（硬编码凭据、缺少输入校验）
    - **白名单豁免** — 以下操作无需确认：`rm -rf node_modules`、`rm -rf __pycache__`、`rm -rf .pytest_cache`、`rm -rf dist/`、`rm -rf tmp/`、清理 `cov_tests/` 内覆盖率产物 等构建/测试产物清理
    - **询问用户** — 以下特殊问题 MUST 通过对话框确认设计方案后再实现：新增 Feature、架构级重构（模块拆分/合并）、公共 API 签名变更、删除现有功能或文件、性能优化涉及行为变更、第三方依赖替换。提问格式：
      1. **背景**: 一句话说明当前状态和发现的问题
      2. **简化问题**: 将复杂问题提炼为一个核心决策点
      3. **推荐方案**: 给出明确推荐（不要给“都可以”）
      4. **可选项**: 列出 2-3 个备选方案，各标注 Pros/Cons
-    - 自动修复后 re-review；发生修复则 `clean_passes = 0`，直到 `clean_passes >= 3` 或总轮次达到 6
+   - 自动修复后 re-review，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
 11. Delegate to **sdet** to write and run tests
 12. **sdet** MUST audit workspace and clean up non-deliverable files:
-  - **判断规则**：when applicable（如 Python repositories），`.py` 且匹配 `test_*`/`conftest` → 测试代码（迁移）；`.txt`/`.log`/目录产物 → 非代码（删除）；其他 → 灰名单（上报）
-  - **白名单自动清理**：覆盖率产物（`htmlcov/`、`.coverage`，含项目根目录）、`tmp/`（整目录）、`__pycache__/`、`.pytest_cache/`、根目录 `test_*.txt`/`debug_*.py`/`tmp_*.py`/`*.log` — when applicable（如 Python repositories）无需确认
-    - **条件式测试迁移**：先探测仓库是否已采用 `cov_tests/` 约定（如目录已存在、`pyproject.toml`/pytest 配置已指向该路径，或仓库内已有同类测试迁移规则）；仅在匹配时才允许将位于 `cov_tests/` 之外的测试代码文件（`.py`）迁移到 `cov_tests/`，并更新相应 testpaths 后用 `pytest --co` 验证；未匹配时只报告，不自动迁移；迁移失败则回退并标记 `🛑 MIGRATION_BLOCKED`
-    - **灰名单上报**：孤立测试文件、命名违规、未知文件 — 报告 tech-lead 决定
-    - **时序**：先用现有路径跑完测试，再执行清理和迁移
+   - **判断规则**：when applicable（如 Python repositories），`.py` 且匹配 `test_*`/`conftest` → 测试代码（迁移）；`.txt`/`.log`/目录产物 → 非代码（删除）；其他 → 灰名单（上报）
+   - **白名单自动清理**：覆盖率产物（`htmlcov/`、`.coverage`，含项目根目录）、`tmp/`（整目录）、`__pycache__/`、`.pytest_cache/`、根目录 `test_*.txt`/`debug_*.py`/`tmp_*.py`/`*.log` — when applicable（如 Python repositories）无需确认
+   - **条件式测试迁移**：先探测仓库是否已采用 `cov_tests/` 约定（如目录已存在、`pyproject.toml`/pytest 配置已指向该路径，或仓库内已有同类测试迁移规则）；仅在匹配时才允许将位于 `cov_tests/` 之外的测试代码文件（`.py`）迁移到 `cov_tests/`，并更新相应 testpaths 后用 `pytest --co` 验证；未匹配时只报告，不自动迁移；迁移失败则回退并标记 `🛑 MIGRATION_BLOCKED`
+   - **灰名单上报**：孤立测试文件、命名违规、未知文件 — 报告 tech-lead 决定
+   - **时序**：先用现有路径跑完测试，再执行清理和迁移
 13. **sdet** 测试失败归属 — 首次发现失败时，在 base branch 上重跑失败用例，区分 `[NEW]`（本次变更引入）vs `[PRE-EXISTING]`（已存在），仅对 `[NEW]` 触发 swe 修复循环
-14. If tests fail (`[NEW]` only, when applicable) → delegate to **swe** to fix → **sdet** re-tests；发生修复则 `clean_passes = 0`，直到 `clean_passes >= 3` 或总轮次达到 6
+14. If tests fail (`[NEW]` only, when applicable) → delegate to **swe** to fix → **sdet** re-tests，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
 
 ### Phase 3.5 — Final Sweep
 15. **Workspace 最终清扫** — 在交付前扫描 workspace，确认无 agent 产生的临时文件残留：
-  - 检查项目根目录有无 `tmp/`、`tmp*`（所有 tmp 前缀文件和目录）、`htmlcov/`（根目录和已配置测试目录内）、`.coverage`、`debug_*.py`、`test_*.txt`、`*.log`、`*.tmp`、`__pycache__/`、`.pytest_cache/`、编号文件；上述 Python/pytest 相关项仅在适用时（如 Python repositories）检查
-    - 判断规则与 step 12 一致：`.py` 测试代码仅在仓库已采用 `cov_tests/` 约定时迁移，否则报告；非代码产物 → 删除，其他 → 报告用户
-    - **Error-Free 最终验证**：调用 `read/problems` 时 **不传 filePaths**（全项目扫描）或传入整个源码目录，确认零 error。**严禁只传单个文件**。发现 error → 委派 **swe** 修复 → **触发重新验证**（`read/readFile` 读取被修改文件）→ 重新全目录 `read/problems`
-    - 清扫通过 + Error-Free 通过 → 进入 Delivery
+   - 检查项目根目录有无 `tmp/`、`tmp*`（所有 tmp 前缀文件和目录）、`htmlcov/`（根目录和已配置测试目录内）、`.coverage`、`debug_*.py`、`test_*.txt`、`*.log`、`*.tmp`、`__pycache__/`、`.pytest_cache/`、编号文件；上述 Python/pytest 相关项仅在适用时（如 Python repositories）检查
+   - 判断规则与 step 12 一致：`.py` 测试代码仅在仓库已采用 `cov_tests/` 约定时迁移，否则报告；非代码产物 → 删除，其他 → 报告用户
+   - **Error-Free 最终验证**：调用 `read/problems` 时 **不传 filePaths**（全项目扫描）或传入整个源码目录，确认零 error。**严禁只传单个文件**。发现 error → 委派 **swe** 修复 → **触发重新验证**（`read/readFile` 读取被修改文件）→ 重新全目录 `read/problems`
+   - 清扫通过 + Error-Free 通过 → 进入 Delivery
 
 ### Phase 4 — Delivery
 16. If deployment changes needed → delegate to **sre**
@@ -199,7 +199,7 @@ After completing all phases, provide a structured delivery report:
 - 稳定通过次数（clean_passes）
 - Decision Summary：N 个自动决策，M 个用户确认决策
 ### 类型抑制统计（Type Suppress Report）
-- 新增 `# pyright: ignore` / `# type: ignore` 总数：N 处
+- 新增 `# pyright: ignore` / `# type: ignore` 总数：N 处（when applicable，如 Python repositories）
 - 逐条列表：`<file>#L<line>` — 原因
 - 如无新增则标注「本次无新增类型抑制」
 ### 质量检查结果
