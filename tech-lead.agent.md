@@ -65,11 +65,70 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
      🔗 CONTEXT: <相关设计文档/PRD/上次委派进度>
      ⚡ TRACK: Trivial | Standard | Complex
      ```
-   - **并行委派策略**：以下场景可并行执行以提高效率：
-     - swe 实现模块 A 的同时，sdet 为已完成的模块 B 编写测试
-     - architect 技术评审 与 sdet 测试计划设计 可并行
-    - 多个独立模块可同时委派不同 swe 子任务（通过子 tech-lead）；但子 tech-lead 不并行执行 workspace 级 `read/problems`、Final Sweep 或最终交付汇总
-     - **禁止并行**：同一文件的修改和测试、有依赖关系的模块实现
+   - **并行委派**：当存在可并行的独立子任务时，MUST 先执行 **Parallel Execution Protocol**（见下方独立章节）的 Pre-Parallelization Overlap Analysis，通过后方可并行委派
+
+### Parallel Execution Protocol
+
+并行委派是提高效率的关键手段，但必须在**确认无重叠**后才能启用。以下协议适用于所有涉及并行的委派场景。
+
+#### 适用场景
+以下场景允许并行执行：
+- swe 实现模块 A 的同时，sdet 为**已完成的**模块 B 编写测试
+- architect 技术评审 与 sdet 测试计划设计 可并行
+- 多个独立模块可同时委派不同 swe 子任务（通过子 tech-lead）；但子 tech-lead 不并行执行 workspace 级 `read/problems`、Final Sweep 或最终交付汇总
+- Phase 3 中 Argus scan 与 reviewer 委派可并行（Medium/Large diff）
+
+#### 禁止并行（硬约束）
+- 同一文件的修改和测试
+- 有依赖关系的模块实现（A import B → A 必须等 B 完成）
+- 同一文件的多个 swe 修改委派
+- workspace 级 `read/problems`、Final Sweep、最终交付汇总（仅顶层 tech-lead 串行执行）
+
+#### Step 1 — Pre-Parallelization Overlap Analysis（强制）
+
+每次并行委派前 MUST 执行以下 4 项检查，全部通过后方可并行：
+
+1. **File Scope Disjointness** — 列出每个并行任务将操作的文件集合；交集 MUST 为空
+2. **Dependency Graph Check** — 验证无任务间的输出→输入依赖（import 链、共享配置文件、生成的中间文件）
+3. **Shared Resource Isolation** — 无两个任务同时修改：数据库表/migration、API endpoint 定义、配置文件、环境变量、全局状态
+4. **Build/Test Infrastructure** — 并行任务不冲突于：构建输出目录、测试 fixture/数据文件、端口绑定、临时文件路径
+
+**输出格式**（记录在 todo 或委派 prompt 中）：
+```
+🔀 PARALLEL ANALYSIS:
+├─ Task A: <描述> → FILES: [f1, f2, f3]
+├─ Task B: <描述> → FILES: [f4, f5, f6]
+├─ File Overlap: ∅ ✅ / {shared_files} 🚫
+├─ Dependency: None ✅ / A→B (<reason>) 🚫
+├─ Shared Resources: None ✅ / {resource} 🚫
+├─ Infra Conflict: None ✅ / {conflict} 🚫
+└─ Verdict: PARALLEL_OK ✅ / SEQUENTIAL_REQUIRED 🚫
+```
+
+**检测到重叠时**：
+- 尝试重新划分任务边界以消除重叠（如将共享文件归入其中一个任务）
+- 若不可避免 → 按依赖顺序串行执行，不强行并行
+
+#### Step 2 — Parallel Dispatch
+
+通过 Overlap Analysis 后，按以下规则分发：
+- 每个并行分支使用标准委派 Prompt 模板（含 `📋 TASK` / `📁 SCOPE` / `🔒 FROZEN` 等）
+- 每个分支的 `🔒 FROZEN` 列表 MUST 包含其他并行分支的 `📁 SCOPE` 文件（双向互锁）
+- 并行分支间不共享进度上下文；每个分支独立完成后返回结果
+
+#### Step 3 — Parallel Sync & Merge
+
+所有并行分支完成后，顶层 tech-lead 执行合并检查：
+1. **变更文件交叉验证** — 确认实际修改文件与 Overlap Analysis 声明一致；发现未声明的文件修改 → 标记 `[DRIFT]`
+2. **集成验证** — 对所有并行分支的变更文件执行一次 workspace 级 `read/problems`（全目录扫描）
+3. **冲突检测** — 若两个分支意外修改了同一文件（Overlap Analysis 遗漏）→ 保留先完成的分支结果，对后完成的分支重新委派
+
+#### Parallel Failure Handling
+
+- 一个并行分支失败不自动阻塞其他分支
+- 失败分支按 Escalation Protocol 单独处理（重试 → 切换策略 → 上报）
+- 成功分支的变更保留，仅对失败分支从断点重新委派
+- 若失败分支的输出是后续步骤的前置依赖 → 阻塞后续步骤直至该分支恢复
 
 ### Phase 3 — Quality Gate (Iterative)
 Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 step 8 Scope Drift Check；始终执行 step 8.5 Error-Free、step 9 按 diff 大小审查，以及 Phase 3.5 Final Sweep。step 11-14 的 sdet 测试委派仅适用于非 Trivial，或 Trivial 任务被明确要求补测时。
