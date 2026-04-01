@@ -72,7 +72,7 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 
 #### 术语定义
 - **测试代码文件**：`test_*.py`、`conftest.py`、`*_test.py` — Python 源代码，用于执行测试
-- **测试输出文件**：`pytest_result.txt`、`pytest-*.txt`、`pytest.xml` — 可验证的 pytest 文本/XML 输出，非代码
+- **测试输出文件**：`pytest_result.txt`、`pytest-*.txt`、`pytest.xml` — 可验证的 pytest 文本/XML 输出，非代码；其中 `.txt` 产物仅在可证明为“本轮创建且非交付物”时才可删除，否则按灰名单上报
 - **覆盖率产物**：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml` — pytest-cov 生成的报告文件
 - **临时文件**：`debug_*.py`、scratch scripts，以及 `tmp/` 下按 provenance 管理的临时测试文件 — 调试和分析过程中产生的一次性文件；`tmp/` 下子项仅在可证明为本轮创建且非交付物时才可删除
 
@@ -90,14 +90,14 @@ Your role mirrors Google SET (Software Engineer in Test), Amazon SDET, and Micro
 2. **判断优先级**（遇到文件时按此顺序判定，first match wins）：
    - ① 文件扩展名是 `.py` 且匹配 `test_*.py` / `*_test.py` / `conftest.py` → **测试代码** → 执行迁移规则（step 4）
    - ①.5 根目录 `debug_*.py` 仅当可证明为“本轮 agent 创建且非交付物”时 → **临时文件** → 执行删除规则（step 3）；否则 → **灰名单** → 报告 tech-lead
-   - ② 文件扩展名是 `.txt` / `.xml` / `.html`，且文件名匹配明确的 pytest/coverage 输出模式（如 `pytest_result.txt`、`pytest-*.txt`、`pytest.xml`、`coverage.xml`）→ **非代码产物** → 执行删除规则（step 3）
+   - ② 文件扩展名是 `.xml` / `.html`，且文件名匹配明确的 pytest/coverage 输出模式（如 `pytest.xml`、`coverage.xml`）→ **非代码产物** → 执行删除规则（step 3）；`pytest_result.txt`、`pytest-*.txt` 仅当可证明为“本轮创建且非交付物”时 → **非代码产物** → 执行删除规则（step 3），否则 → **灰名单** → 报告 tech-lead
    - ③ 目录名匹配 `htmlcov/` / `__pycache__/` / `.pytest_cache/` → **产物目录** → 执行删除规则（step 3）；目录名匹配 `tmp/` → 仅当其子项可证明为本轮创建且非交付物时才可删除对应子项，否则上报 tech-lead
    - ④ 其他 → **灰名单** → 报告 tech-lead
 3. **白名单自动删除**（直接删除，NEVER 询问用户）：
    - `cov_tests/` 内：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`
-   - 项目根目录内：`htmlcov/`（pytest-cov 默认输出位置）、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`、`pytest_result.txt`、`pytest-*.txt`
+   - 项目根目录内：`htmlcov/`（pytest-cov 默认输出位置）、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`
    - 任意位置：`__pycache__/`、`.pytest_cache/`、`*.pyc`，以及 `tmp/` 下仅限“本轮创建且可证明为非交付物”的子项
-   - 发现预存 `tmp/`、归属不明内容、项目根目录未知 `tmp*` 文件/目录、根目录归属不明的 `debug_*.py`，或无法证明为本轮创建的 `tmp/` 子项 → 停止删除并报告 tech-lead
+   - 发现预存 `tmp/`、归属不明内容、项目根目录未知 `tmp*` 文件/目录、根目录归属不明的 `debug_*.py`、无法证明为本轮创建的 `tmp/` 子项，或无法证明为本轮创建的 `pytest_result.txt` / `pytest-*.txt` → 停止删除并报告 tech-lead
 4. **条件式测试迁移**（命中约定时才执行，NEVER 询问用户）：
    - 先探测仓库是否已采用 `cov_tests/` 约定（如 `cov_tests/` 目录已存在、pytest 配置已指向该路径、或仓库已有同类迁移规则）
    - 仅当命中约定，且测试代码文件（`.py`）位于 `cov_tests/` 和 `tmp/` 之外时，才执行：① 将文件移动到 `cov_tests/` ② 更新 `pyproject.toml` 的 `testpaths` ③ 更新 `conftest.py` 中的相对导入路径 ④ 运行 `pytest cov_tests/ --co -q` 验证迁移不破坏测试发现
