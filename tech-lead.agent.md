@@ -35,7 +35,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 - Trivial 跳过 pm/architect/sdet 委派，但仍必须执行 Scope Drift（如有改动）、Error-Free、按 diff 大小的审查、Final Sweep 后才能交付
 - Standard 按需跳过（如纯 bug fix 跳过 pm）
-- Complex 必须走完所有阶段
+- Complex 必须走完所有阶段；分解为子 tech-lead 时 MUST 对各子模块执行 **Parallel Execution Protocol** Step 1 Overlap Analysis，确认 scope 互斥后方可并行
 
 ### Phase 1 — Planning
 1. Analyze the user's request: scope, complexity, affected areas
@@ -43,6 +43,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 3. Attempt to read existing `.github/learnings/<agent>.md` files if present; DO NOT pre-create them during planning
 4. If requirements are unclear → delegate to **pm** for research and PRD
 5. Delegate to **architect** for system design and technical decisions
+   - **并行机会**：pm 完成 PRD 与 architect 完成 Design Doc 是独立的，可并行启动；但必须先完成 Overlap Analysis（pm 产出的 PRD 是 architect 的输入时不可并行；若 architect 仅需用户原始需求即可开始，则与 pm 可并行）
 6. **Spec Review Loop** — 文档完成后独立审查：
    - pm 完成 PRD 后 → 委派 **architect** 做 feasibility review（技术可行性）
   - architect 完成 Design Doc 后 → 由 **tech-lead** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
@@ -90,7 +91,9 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 1. **File Scope Disjointness** — 列出每个并行任务将操作的文件集合；交集 MUST 为空
 2. **Dependency Graph Check** — 验证无任务间的输出→输入依赖（import 链、共享配置文件、生成的中间文件）
+   - **检测手段**：用 `search/textSearch` 搜索各分支 SCOPE 文件的 import/require/from 声明，检查是否引用其他分支的文件；检查 `__init__.py`、`index.ts` 等模块入口的 re-export
 3. **Shared Resource Isolation** — 无两个任务同时修改：数据库表/migration、API endpoint 定义、配置文件、环境变量、全局状态
+   - **检测手段**：检查各分支是否修改共享配置文件（如 `pyproject.toml`、`package.json`、`.env`、`docker-compose.yml`）；检查是否操作同一数据库表或 migration 序列
 4. **Build/Test Infrastructure** — 并行任务不冲突于：构建输出目录、测试 fixture/数据文件、端口绑定、临时文件路径
 
 **输出格式**（记录在 todo 或委派 prompt 中）：
@@ -148,8 +151,8 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
     - 6 轮内仍未达到稳定通过 → 标记为 `🛑 ESCALATED`，报告用户
 9. Code review — 按 diff 大小分层审查：
    - **Small diff (<50 行)**：仅 Argus MCP `argus_scan` → `argus_review`
-   - **Medium diff (50-199 行)**：Argus + 委派 **reviewer** 对抗性审查
-   - **Large diff (200+ 行)**：Argus + **reviewer** + **swe**（只读攻击者视角）三方审查
+   - **Medium diff (50-199 行)**：Argus + 委派 **reviewer** 对抗性审查（Argus 与 reviewer 可并行启动，无需 Overlap Analysis — 两者为只读审查，无文件重叠）
+   - **Large diff (200+ 行)**：Argus + **reviewer** + **swe**（只读攻击者视角）三方审查（三者均为只读，可并行启动）
   - **Fallback**: 若 Argus MCP 可用，则 Small = `argus_scan` → `argus_review`，Medium = Argus + **reviewer**，Large = Argus + **reviewer** + **swe**（只读攻击者视角）
   - **Fallback**: 若 Argus MCP 不可用，则 Small/Medium/Large **全部退化为单一 reviewer 路径**；此时 **reviewer** 只计作一条备用审查链路，不得同时充当“主审 + 第二意见”双重角色
   - **Re-review 一致性**：每次修复后 MUST 按初始 diff 档位重复同等级审查；Small 始终走 Small，Medium 始终走 Medium，Large 始终走 Large，除非用户明确缩 scope 并重置本轮任务
