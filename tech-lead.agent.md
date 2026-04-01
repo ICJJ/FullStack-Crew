@@ -46,8 +46,8 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 6. **Spec Review Loop** — 文档完成后独立审查：
    - pm 完成 PRD 后 → 委派 **architect** 做 feasibility review（技术可行性）
    - architect 完成 Design Doc 后 → 委派 **reviewer** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
-  - reviewer 结论为 `不通过` 或存在 `🔴 Critical` → 返回修订
-  - 任一轮发生修订 → 按 Iteration Protocol 持续迭代；总轮次达到 6 或连续两轮 findings 完全相同 → 停止并标记为 `Reviewer Concerns`
+    - reviewer 结论为 `不通过` 或存在 `🔴 Critical` → 返回修订
+    - 任一轮发生修订 → 按 Iteration Protocol 持续迭代；总轮次达到 6 或连续两轮 findings 完全相同 → 停止并标记为 `Reviewer Concerns`
 
 ### Phase 2 — Implementation
 7. Delegate to **swe** to implement code based on the design
@@ -76,11 +76,11 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - 发现 `[DRIFT]` → 要求 swe 回退不相关变更或给出合理解释
    - 发现 `[NOT DONE]` → 重新委派或标记为遗留
 8.5. **Error-Free 检查** — 使用 `read/problems` 获取编译/lint 错误：
-  - **扫描范围**：调用 `read/problems` 时 **不传 filePaths 参数**（获取全项目错误）或传入**整个源码目录路径**（如 `app/`、`src/`），**严禁只传单个文件** — 单文件扫描会遗漏其他被修改文件的错误
+    - **扫描范围**：调用 `read/problems` 时 **不传 filePaths 参数**（获取全项目错误）或传入**整个源码目录路径**（如 `app/`、`src/`），**严禁只传单个文件** — 单文件扫描会遗漏其他被修改文件的错误
    - 交付标准：**零 error**（warning 可接受）；仅关注非 `.md` 文件的 error
-  - 发现 error → 委派 **swe** 修复 → **触发重新验证**（对每个被修改的文件执行 `read/readFile` 强制 VS Code 语言服务器重新解析）→ 重新 `read/problems`（同样全目录扫描）验证，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
-  - **`# pyright: ignore` / `type: ignore` 使用策略**：仅在适用时启用；MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。swe 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
-  - 6 轮内仍未达到稳定通过 → 标记为 `🛑 ESCALATED`，报告用户
+    - 发现 error → 委派 **swe** 修复 → **触发重新验证**（对每个被修改的文件执行 `read/readFile` 强制 VS Code 语言服务器重新解析）→ 重新 `read/problems`（同样全目录扫描）验证，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
+    - **`# pyright: ignore` / `type: ignore` 使用策略**：仅在适用时启用；MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。swe 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
+    - 6 轮内仍未达到稳定通过 → 标记为 `🛑 ESCALATED`，报告用户
 9. Code review — 按 diff 大小分层审查：
    - **Small diff (<50 行)**：仅 Argus MCP `argus_scan` → `argus_review`
    - **Medium diff (50-199 行)**：Argus + 委派 **reviewer** 对抗性审查
