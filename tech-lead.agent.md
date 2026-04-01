@@ -82,6 +82,7 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
 8.5. **Error-Free 检查** — 使用 `read/problems` 获取编译/lint 错误：
     - **扫描范围**：调用 `read/problems` 时 **不传 filePaths 参数**（获取全项目错误）或传入**整个源码目录路径**（如 `app/`、`src/`），**严禁只传单个文件** — 单文件扫描会遗漏其他被修改文件的错误
    - **可见性**：保留全项目 error 视图；所有非 `.md` 文件的 error 都要记录并在交付中说明
+  - **Owner 边界**：顶层 tech-lead 始终是 workspace 级 `read/problems` gate owner；如需加速定位，可显式要求 swe/sdet 执行同范围扫描作为**只读辅助验证**，但这不转移 gate ownership，也不允许其因无关既有错误自行扩 scope 修复
    - **阻塞归因**：仅当 error 是**本次改动引入的**，或位于**当前变更 scope / 明确允许扩展的 scope** 内时，才触发 swe 修复闭环；既有且无关 scope 的 error 必须上报，但不阻塞本轮稳定通过
   - 发现属于阻塞归因的 error → 委派 **swe** 修复 → **触发重新验证**（可对每个被修改的文件执行 `read/readFile` 以刷新上下文参考，但这**不保证** VS Code 诊断重载）→ 重新 `read/problems`（同样全目录扫描）验证；`read/problems` 才是唯一可信的错误状态依据，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
     - **`# pyright: ignore` / `type: ignore` 使用策略**：仅在适用时启用；MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。swe 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
@@ -105,8 +106,8 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
    - 自动修复后 re-review，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
 11. Delegate to **sdet** to write and run tests
 12. **sdet** MUST audit workspace and clean up non-deliverable files:
-  - **判断规则**：when applicable（如 Python repositories），`.py` 且匹配 `test_*.py` / `*_test.py` / `conftest.py`（与 sdet 保持一致）→ 测试代码（迁移）；明确定义的构建/测试产物模式（如 `.pytest_cache/`、`__pycache__/`、`htmlcov/`、`.coverage`、`debug_*.py`、明确的覆盖率产物）→ 非代码（删除）；`tmp/` 仅允许删除“本轮 agent 创建且可证明为非交付物”的子项；发现预存 `tmp/` 或归属不明内容，以及未知 `tmp*` 文件/目录、普通 `.txt`/`.log` 和未知目录默认 → 灰名单（上报）
-  - **白名单自动清理**：覆盖率产物（`htmlcov/`、`.coverage`，含项目根目录）、`__pycache__/`、`.pytest_cache/`、根目录 `debug_*.py`、明确的覆盖率产物（如根目录 `coverage.xml`、`pytest.xml`），以及“本轮 agent 创建且可证明为非交付物”的 `tmp/` 子项 — when applicable（如 Python repositories）无需确认；预存 `tmp/`、归属不明 `tmp/` 内容、未知 `tmp*`、普通 `.txt`/`.log` 和未知目录不自动删除
+  - **判断规则**：when applicable（如 Python repositories），`.py` 且匹配 `test_*.py` / `*_test.py` / `conftest.py`（与 sdet 保持一致）→ 测试代码（迁移）；明确定义的构建/测试产物模式（如 `.pytest_cache/`、`__pycache__/`、`htmlcov/`、`.coverage`、明确的覆盖率产物）→ 非代码（删除）；根目录 `debug_*.py` 仅当可证明为“本轮 agent 创建且非交付物”时才可删除，否则灰名单上报；`tmp/` 仅允许删除“本轮 agent 创建且可证明为非交付物”的子项；发现预存 `tmp/` 或归属不明内容，以及未知 `tmp*` 文件/目录、普通 `.txt`/`.log` 和未知目录默认 → 灰名单（上报）
+  - **白名单自动清理**：覆盖率产物（`htmlcov/`、`.coverage`，含项目根目录）、`__pycache__/`、`.pytest_cache/`、明确的覆盖率产物（如根目录 `coverage.xml`、`pytest.xml`），以及“本轮 agent 创建且可证明为非交付物”的 `tmp/` 子项 — when applicable（如 Python repositories）无需确认；根目录 `debug_*.py`、预存 `tmp/`、归属不明 `tmp/` 内容、未知 `tmp*`、普通 `.txt`/`.log` 和未知目录不自动删除
    - **条件式测试迁移**：先探测仓库是否已采用 `cov_tests/` 约定（如目录已存在、`pyproject.toml`/pytest 配置已指向该路径，或仓库内已有同类测试迁移规则）；仅在匹配时才允许将位于 `cov_tests/` 之外的测试代码文件（`.py`）迁移到 `cov_tests/`，并更新相应 testpaths 后用 `pytest --co` 验证；未匹配时只报告，不自动迁移；迁移失败则回退并标记 `🛑 MIGRATION_BLOCKED`
    - **灰名单上报**：孤立测试文件、命名违规、未知文件 — 报告 tech-lead 决定
    - **时序**：先用现有路径跑完测试，再执行清理和迁移
@@ -115,7 +116,7 @@ Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 
 
 ### Phase 3.5 — Final Sweep
 15. **Workspace 最终清扫** — 在交付前扫描 workspace，确认无 agent 产生的临时文件残留；本步骤及 workspace 级 `read/problems` 仅由顶层 tech-lead 执行：
-  - 检查项目根目录有无 `tmp/`、`htmlcov/`（根目录和已配置测试目录内）、`.coverage`、`debug_*.py`、`__pycache__/`、`.pytest_cache/`、明确的覆盖率产物（如 `coverage.xml`、`pytest.xml`）；`tmp/` 仅清理可证明为本轮 agent 创建且非交付物的子项；预存 `tmp/`、归属不明内容、未知 `tmp*` 文件/目录、普通 `.txt`/`.log` 和未知目录仅灰名单上报；根目录 `*.tmp` 不在自动删除白名单内，除非能证明为本轮创建且非交付物，否则按灰名单上报；上述 Python/pytest 相关项仅在适用时（如 Python repositories）检查
+  - 检查项目根目录有无 `tmp/`、`htmlcov/`（根目录和已配置测试目录内）、`.coverage`、`debug_*.py`、`__pycache__/`、`.pytest_cache/`、明确的覆盖率产物（如 `coverage.xml`、`pytest.xml`）；`tmp/` 仅清理可证明为本轮 agent 创建且非交付物的子项；根目录 `debug_*.py` 仅当可证明为本轮 agent 创建且非交付物时才可删除，否则按灰名单上报；预存 `tmp/`、归属不明内容、未知 `tmp*` 文件/目录、普通 `.txt`/`.log` 和未知目录仅灰名单上报；根目录 `*.tmp` 不在自动删除白名单内，除非能证明为本轮创建且非交付物，否则按灰名单上报；上述 Python/pytest 相关项仅在适用时（如 Python repositories）检查
   - 判断规则与 step 12 一致，并与 sdet 的测试文件模式保持一致：`.py` 且匹配 `test_*.py` / `*_test.py` / `conftest.py` 的测试代码仅在仓库已采用 `cov_tests/` 约定时迁移，否则报告；明确的 agent/构建临时产物 → 删除，其他 → 报告用户
   - **Error-Free 最终验证**：调用 `read/problems` 时 **不传 filePaths**（全项目扫描）或传入整个源码目录，保留全项目 error 可见性。**严禁只传单个文件**。仅当 error 属于本次改动引入，或位于当前变更 scope / 明确允许扩展的 scope 内时，才委派 **swe** 修复并触发重新验证（可用 `read/readFile` 读取被修改文件以刷新上下文参考，但这**不保证**诊断重载）→ 重新全目录 `read/problems`；`read/problems` 才是唯一可信的最终错误状态依据。既有且无关 scope 的 error 仅上报，不阻塞本轮 Final Sweep 通过
    - 清扫通过 + Error-Free 通过 → 进入 Delivery
