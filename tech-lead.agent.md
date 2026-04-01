@@ -29,11 +29,11 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 | 级别 | 条件 | 流程 |
 |------|------|------|
-| **Trivial** | ≤3 文件，无架构变更 | swe → 轻量审查（Argus only）→ Delivery |
+| **Trivial** | ≤3 文件，无架构变更 | swe → 必要质量门禁（Scope Drift / Error-Free / 按 diff 大小审查 / Final Sweep）→ Delivery |
 | **Standard** | 4-15 文件，单模块 | 完整 Phase 1→2→3→4 |
 | **Complex** | >15 文件或跨模块 | 全流程 + 子 tech-lead 分治（仅一层，且各子 scope 互斥） |
 
-- Trivial 跳过 pm/architect/sdet 阶段
+- Trivial 跳过 pm/architect/sdet 委派，但仍必须执行 Scope Drift（如有改动）、Error-Free、按 diff 大小的审查、Final Sweep 后才能交付
 - Standard 按需跳过（如纯 bug fix 跳过 pm）
 - Complex 必须走完所有阶段
 
@@ -45,8 +45,9 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 5. Delegate to **architect** for system design and technical decisions
 6. **Spec Review Loop** — 文档完成后独立审查：
    - pm 完成 PRD 后 → 委派 **architect** 做 feasibility review（技术可行性）
-   - architect 完成 Design Doc 后 → 委派 **reviewer** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
-  - reviewer 结论为 `不通过` 或存在 `🔴 Critical` → 返回修订
+  - architect 完成 Design Doc 后 → 由 **tech-lead** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
+  - 如需独立对抗性视角审查，或 Argus MCP 不可用时 → 再委派 **reviewer** 做补充审查（非 Design Doc 主审）
+  - tech-lead 或 reviewer 结论为 `不通过` 或存在 `🔴 Critical` → 返回修订
   - 任一轮发生修订 → 按 Iteration Protocol 持续迭代；总轮次达到 6 或连续两轮 findings 完全相同 → 停止并标记为 `Reviewer Concerns`
 
 ### Phase 2 — Implementation
@@ -70,6 +71,8 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
      - **禁止并行**：同一文件的修改和测试、有依赖关系的模块实现
 
 ### Phase 3 — Quality Gate (Iterative)
+Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 step 8 Scope Drift Check；始终执行 step 8.5 Error-Free、step 9 按 diff 大小审查，以及 Phase 3.5 Final Sweep。step 11-14 的 sdet 测试委派仅适用于非 Trivial，或 Trivial 任务被明确要求补测时。
+
 8. **Scope Drift Check** — 每轮质量门禁前进行范围漂移检查：
    - 对比 todo list 原始项 vs swe 实际变更文件列表
    - 对每个 todo 项标记状态：`[DONE]` / `[PARTIAL]` / `[NOT DONE]` / `[CHANGED]`（需求变更）/ `[DRIFT]`（范围蔓延  — 改了不相关的文件）
