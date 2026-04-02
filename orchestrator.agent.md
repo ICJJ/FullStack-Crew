@@ -29,13 +29,13 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 | 级别 | 条件 | 流程 |
 |------|------|------|
-| **Trivial** | ≤3 文件，无架构变更 | swe → 必要质量门禁（Scope Drift / Error-Free / 按 diff 大小审查 / Final Sweep）→ Delivery |
+| **Trivial** | ≤3 文件，无架构变更 | implementer → 必要质量门禁（Scope Drift / Error-Free / 按 diff 大小审查 / Final Sweep）→ Delivery |
 | **Standard** | 4-15 文件，单模块 | 完整 Phase 1→2→3→4 |
-| **Complex** | >15 文件或跨模块 | 全流程 + 子 tech-lead 分治（仅一层，且各子 scope 互斥） |
+| **Complex** | >15 文件或跨模块 | 全流程 + 子 orchestrator 分治（仅一层，且各子 scope 互斥） |
 
-- Trivial 跳过 pm/architect/sdet 委派，但仍必须执行 Scope Drift（如有改动）、Error-Free、按 diff 大小的审查、Final Sweep 后才能交付
+- Trivial 跳过 pm/architect/verifier 委派，但仍必须执行 Scope Drift（如有改动）、Error-Free、按 diff 大小的审查、Final Sweep 后才能交付
 - Standard 按需跳过（如纯 bug fix 跳过 pm）
-- Complex 必须走完所有阶段；分解为子 tech-lead 时 MUST 对各子模块执行 **Parallel Execution Protocol** Step 1 Overlap Analysis，确认 scope 互斥后方可并行
+- Complex 必须走完所有阶段；分解为子 orchestrator 时 MUST 对各子模块执行 **Parallel Execution Protocol** Step 1 Overlap Analysis，确认 scope 互斥后方可并行
 
 ### Phase 1 — Planning
 1. Analyze the user's request: scope, complexity, affected areas
@@ -46,9 +46,9 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
    - **并行机会**：pm 完成 PRD 与 architect 完成 Design Doc 是独立的，可并行启动；但必须先完成 Overlap Analysis（pm 产出的 PRD 是 architect 的输入时不可并行；若 architect 仅需用户原始需求即可开始，则与 pm 可并行）
 6. **Spec Review Loop** — 文档完成后独立审查：
    - pm 完成 PRD 后 → 委派 **architect** 做 feasibility review（技术可行性）
-  - architect 完成 Design Doc 后 → 由 **tech-lead** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
+  - architect 完成 Design Doc 后 → 由 **orchestrator** 做 consistency review（5 维度：完整性/一致性/清晰度/范围/可行性）
   - 如需独立对抗性视角审查，或 Argus MCP 不可用时 → 再委派 **reviewer** 做补充审查（非 Design Doc 主审）
-  - tech-lead 或 reviewer 结论为 `不通过` 或存在 `🔴 Critical` → 返回修订
+  - orchestrator 或 reviewer 结论为 `不通过` 或存在 `🔴 Critical` → 返回修订
   - 任一轮发生修订 → 按 Iteration Protocol 持续迭代；总轮次达到 6 → 停止并标记为 `Reviewer Concerns`
   - 连续两轮 findings 完全相同 → 走早停升级分支，立即标记为 `Reviewer Concerns` 并上报；这不是稳定通过条件，稳定通过仍仅由 `clean_passes` 定义
 
