@@ -42,7 +42,7 @@ Phase 4 — Delivery       → Deployer 部署 + 交付报告
 ## 特性
 
 - **自学习协议**: 每个 Agent 具备三步学习机制 — 启动加载知识 → 角色反思 → 记录学习
-- **双轨知识存储**: 通用知识（`/memories/<role>.md`）+ 项目知识（`.github/learnings/<role>.md`）
+- **双轨知识存储**: 通用知识（Agent 定义文件末尾）+ 项目知识（`.github/memory/<role>.md`）
 - **角色自进化**: Agent 可基于任务反思直接修改自身定义文件
 - **Argus 降级**: 质量门禁支持 Argus MCP 自动评审，不可用时自动回退到 Self-review
 - **自递归**: Orchestrator 可委派子 Orchestrator 处理独立子模块

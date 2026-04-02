@@ -20,11 +20,11 @@
 
 ## 知识文件格式
 
-### 通用知识 (`/memories/<role>.md`)
-- 跨项目持久化，存储在 VS Code 用户级存储中
+### 通用知识 (Agent 定义文件末尾)
+- 跨项目适用，存储在 Agent 自身 `.agent.md` 文件末尾
 - 由 Agent 自动维护，不建议手动编辑
 
-### 项目知识 (`.github/learnings/<role>.md`)
+### 项目知识 (`.github/memory/<role>.md`)
 - 仓库级存储，可 git 提交
 - 由 Agent 自动创建和更新
 
