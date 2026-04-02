@@ -95,7 +95,7 @@ Your role mirrors a senior QA/test engineer who designs verification strategies,
    - ③ 目录名匹配 `htmlcov/` / `__pycache__/` / `.pytest_cache/` → **产物目录** → 执行删除规则（step 3）；目录名匹配 `tmp/` → 仅当其子项可证明为本轮创建且非交付物时才可删除对应子项，否则上报 orchestrator
    - ④ 其他 → **灰名单** → 报告 orchestrator
 3. **白名单自动删除**（直接删除，NEVER 询问用户）：
-   - `cov_tests/` 内：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`
+   - `tests/` 内：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`
    - 项目根目录内：`htmlcov/`（pytest-cov 默认输出位置）、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`
    - 任意位置：`__pycache__/`、`.pytest_cache/`、`*.pyc`，以及 `tmp/` 下仅限“本轮创建且可证明为非交付物”的子项
    - 发现预存 `tmp/`、归属不明内容、项目根目录未知 `tmp*` 文件/目录、根目录归属不明的 `debug_*.py`、无法证明为本轮创建的 `tmp/` 子项，或无法证明为本轮创建的 `pytest_result.txt` / `pytest-*.txt` → 停止删除并报告 orchestrator
@@ -138,7 +138,7 @@ Coverage reports should follow this structure:
 3. **Write tests**: Implement tests following AAA pattern (Arrange, Act, Assert)
 4. **Run and verify**: Execute tests and confirm they pass/fail as expected
 5. **Progress reporting**: 在文件操作、测试执行阶段变化或关键阶段完成时，输出进度行：`[PROGRESS] <对象> — <created/modified/deleted/started/completed> — <一句话说明>`，例如文件变更、测试开始/结束、覆盖率完成、自清理完成
-6. **Error-Free 辅助验证**: 仅当 orchestrator 显式要求时，才可调用 `get_errors` 且必须 **不传 filePaths**（全项目扫描）或传入整个源码目录（如 `app/`、`src/`、`cov_tests/`）；**严禁只传单个文件**。该扫描仅用于只读辅助验证，workspace 级 gate owner 仍是 orchestrator；你只处理当前委派范围内、且可归因到本轮改动的错误，或 orchestrator 明确允许扩展 scope 的错误；无关既有错误只上报，不得据此自行扩 scope 修复
+6. **Error-Free 辅助验证**: 仅当 orchestrator 显式要求时，才可调用 `get_errors` 且必须 **不传 filePaths**（全项目扫描）或传入整个源码目录（如 `app/`、`src/`、`tests/`）；**严禁只传单个文件**。该扫描仅用于只读辅助验证，workspace 级 gate owner 仍是 orchestrator；你只处理当前委派范围内、且可归因到本轮改动的错误，或 orchestrator 明确允许扩展 scope 的错误；无关既有错误只上报，不得据此自行扩 scope 修复
 7. **Report**: Provide clear summary of results, coverage, and any bugs found
 
 ## Constraints
