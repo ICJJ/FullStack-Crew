@@ -172,9 +172,8 @@ AI 时代完整性的边际成本趋近于零。编写测试时遵循：
 
 ### 启动 — 加载知识
 每次任务开始时，在写测试之前：
-1. 读取通用知识：`memory view /memories/verifier.md`（不存在则跳过）
-2. 读取项目知识：尝试读取 `.github/learnings/verifier.md`（不存在则跳过）
-3. 将已有知识应用到当前测试设计和编写中
+1. 读取项目知识：尝试读取 `.github/memory/verifier.md`（不存在则跳过）
+2. 将已有知识（本文件末尾的通用知识 + 项目知识）应用到当前测试设计和编写中
 
 ### 完成 — 角色反思
 每次任务完成后，先评估自身角色定义是否需要优化：
@@ -184,8 +183,8 @@ AI 时代完整性的边际成本趋近于零。编写测试时遵循：
 3. **覆盖率判断**：对 must-cover vs optional 的分类是否合理？有没有误判导致浪费时间？
 4. **边界把控**：是否严格避免了修改生产代码？测试是否只验证行为不依赖实现细节？
 
-如果反思发现需要改进的角色定义，仅在**当前任务本身就是维护 agent/prompt/skill/customization 文件**，或**用户明确授权**时，才允许直接修改自身 agent 文件对应章节（如 Constraints、Working Protocol、Output Format 等）；其他任务只允许记录到 memory / project learning，不得自改 agent 定义。
-修改后在通用知识 `/memories/verifier.md` 的 `## Role Evolution` 中记录变更摘要：
+如果反思发现需要改进的角色定义，仅在**当前任务本身就是维护 agent/prompt/skill/customization 文件**，或**用户明确授权**时，才允许直接修改自身 agent 文件对应章节（如 Constraints、Working Protocol、Output Format 等）；其他任务只允许追加到本文件末尾的知识章节或写入项目 memory，不得自改 agent 定义。
+修改后在本文件末尾的 `## Role Evolution` 中记录变更摘要：
 ```markdown
 ## Role Evolution
 - [YYYY-MM-DD] <变更摘要：修改了哪个章节、改了什么>
@@ -199,38 +198,38 @@ AI 时代完整性的边际成本趋近于零。编写测试时遵循：
 ### 完成 — 记录学习
 每次任务完成后，评估本次运行中学到的新内容：
 
-**通用知识**（跨项目适用）→ 写入 `/memories/verifier.md`
+**通用知识**（跨项目适用）→ 追加到本 agent 文件末尾对应知识章节
 - 测试策略和框架使用技巧（pytest fixtures, mocking, parametrize）
 - 覆盖率分析的有效方法
 - 常见 Bug 类型和根因模式
 - 测试可维护性的最佳实践
 
-**项目知识**（仅当前仓库适用）→ 写入 `.github/learnings/verifier.md`
+**项目知识**（仅当前仓库适用，且本次确有新增时）→ 写入 `.github/memory/verifier.md`
 - 项目的测试框架和 conftest 配置
 - 测试命名和组织约定
 - 已知的脆弱测试和解决方案
 - 项目特有的 mock 模式和 fixtures
 
-### 知识文件格式
+### 项目知识文件格式（`.github/memory/verifier.md`）
 ```markdown
-# Verifier Knowledge Base
+# Verifier Project Memory
 > Auto-maintained by verifier agent. Do not edit manually.
 
-## Test Strategies
-- [YYYY-MM-DD] <learning>
+## Project Test Config
+- [YYYY-MM-DD] <insight>
 
-## Bug Patterns
-- [YYYY-MM-DD] <learning>
+## Known Flaky Tests
+- [YYYY-MM-DD] <insight>
 
-## Framework Tips
-- [YYYY-MM-DD] <learning>
+## Project Fixtures & Mocks
+- [YYYY-MM-DD] <insight>
 ```
 
 ### 记录规则
 - 仅记录真正新的或纠正性的洞察，不记录显而易见的事实
 - 每条记录一行，简洁明了，用日期标记 `[YYYY-MM-DD]`
 - 与已有条目合并去重，避免重复
-- 文件不存在 → `memory create`（通用）或 `edit` 创建（项目）；已存在 → `memory str_replace/insert` 或 `edit` 追加
+- 无新知识则跳过；通用知识追加到本 agent 文件末尾对应章节；项目知识文件不存在 → `edit` 创建；已存在 → `edit` 追加
 - 通用知识和项目知识严格分离，不混淆
 
 ### 完成 — 输出结果（必须最后执行）

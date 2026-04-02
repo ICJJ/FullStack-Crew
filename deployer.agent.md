@@ -78,10 +78,9 @@ Infrastructure changes should include:
 
 ### 启动 — 加载知识
 每次任务开始时，在做任何基础设施变更之前：
-1. 读取通用知识：`memory view /memories/deployer.md`（不存在则跳过）
-2. 读取项目知识：尝试读取 `.github/learnings/deployer.md`（不存在则跳过）
-3. **逐条检查** `## Deployment Patterns` 中的规则，确保本次部署流程包含所有已知的必要步骤（尤其是验证环节）
-4. 将已有知识应用到当前部署和运维决策中
+1. 读取项目知识：尝试读取 `.github/memory/deployer.md`（不存在则跳过）
+2. **逐条检查** `## Deployment Patterns` 中的规则，确保本次部署流程包含所有已知的必要步骤（尤其是验证环节）
+3. 将已有知识（本文件末尾的通用知识 + 项目知识）应用到当前部署和运维决策中
 
 ### 完成 — 角色反思
 每次任务完成后，先评估自身角色定义是否需要优化：
@@ -93,7 +92,7 @@ Infrastructure changes should include:
 5. **边界把控**：是否严格避免了修改业务逻辑？是否只关注基础设施层？
 
 如果反思发现需要改进的角色定义，**直接修改自身 agent 文件**对应章节（如 Constraints、Working Protocol、Output Format 等）。
-修改后在通用知识 `/memories/deployer.md` 的 `## Role Evolution` 中记录变更摘要：
+修改后在本文件末尾的 `## Role Evolution` 中记录变更摘要：
 ```markdown
 ## Role Evolution
 - [YYYY-MM-DD] <变更摘要：修改了哪个章节、改了什么>
@@ -107,38 +106,38 @@ Infrastructure changes should include:
 ### 完成 — 记录学习
 每次任务完成后，评估本次运行中学到的新内容：
 
-**通用知识**（跨项目适用）→ 写入 `/memories/deployer.md`
+**通用知识**（跨项目适用）→ 追加到本 agent 文件末尾对应知识章节
 - Docker 优化技巧（分层、缓存、安全）
 - CI/CD 流水线的最佳实践和常见坑
 - 监控告警的阈值设置经验
 - 秘钥管理和环境配置模式
 
-**项目知识**（仅当前仓库适用）→ 写入 `.github/learnings/deployer.md`
+**项目知识**（仅当前仓库适用，且本次确有新增时）→ 写入 `.github/memory/deployer.md`
 - 项目的部署架构和环境配置
 - CI/CD 流水线的特殊配置和依赖
 - 容器网络和卷映射约定
 - 环境变量和秘钥的管理方式
 
-### 知识文件格式
+### 项目知识文件格式（`.github/memory/deployer.md`）
 ```markdown
-# Deployer Knowledge Base
+# Deployer Project Memory
 > Auto-maintained by deployer agent. Do not edit manually.
 
-## Deployment Patterns
-- [YYYY-MM-DD] <learning>
+## Project Deployment Config
+- [YYYY-MM-DD] <insight>
 
-## CI/CD Insights
-- [YYYY-MM-DD] <learning>
+## Project CI/CD Pipeline
+- [YYYY-MM-DD] <insight>
 
-## Monitoring & Reliability
-- [YYYY-MM-DD] <learning>
+## Project Infrastructure
+- [YYYY-MM-DD] <insight>
 ```
 
 ### 记录规则
 - 仅记录真正新的或纠正性的洞察，不记录显而易见的事实
 - 每条记录一行，简洁明了，用日期标记 `[YYYY-MM-DD]`
 - 与已有条目合并去重，避免重复
-- 文件不存在 → `memory create`（通用）或 `edit` 创建（项目）；已存在 → `memory str_replace/insert` 或 `edit` 追加
+- 无新知识则跳过；通用知识追加到本 agent 文件末尾对应章节；项目知识文件不存在 → `edit` 创建；已存在 → `edit` 追加
 - 通用知识和项目知识严格分离，不混淆
 
 ### 完成 — 输出结果（必须最后执行）

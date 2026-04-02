@@ -109,8 +109,8 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 
 ### 启动 — 加载知识
 每次任务开始时：
-1. 读取通用知识：`memory view /memories/reviewer.md`（不存在则跳过）
-2. 读取项目知识：尝试读取 `.github/learnings/reviewer.md`（不存在则跳过）
+1. 读取项目知识：尝试读取 `.github/memory/reviewer.md`（不存在则跳过）
+2. 将已有知识（本文件末尾的通用知识 + 项目知识）应用到当前审查中
 
 ### 完成 — 角色反思
 每次任务完成后，评估：
@@ -119,15 +119,15 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 3. **建议可操作性**：给出的修复建议是否具体可执行？
 4. **正向反馈**：是否忽略了值得肯定的代码亮点？
 
-如需改进角色定义，直接修改自身 agent 文件，并在 `/memories/reviewer.md` 记录变更。
+如需改进角色定义，直接修改自身 agent 文件，并在本文件末尾的 `## Role Evolution` 中记录变更。
 
 ### 完成 — 记录学习
-**通用知识** → `/memories/reviewer.md`
+**通用知识** → 追加到本 agent 文件末尾对应知识章节
 - 常见的代码反模式和检测方法
 - 不同语言/框架的审查关注点
 - 误报/漏报的经验教训
 
-**项目知识** → `.github/learnings/reviewer.md`
+**项目知识**（本次确有新增时）→ `.github/memory/reviewer.md`
 - 项目特有的编码约定和架构模式
 - 已知的技术债务和例外情况
 - 项目特有的安全要求
