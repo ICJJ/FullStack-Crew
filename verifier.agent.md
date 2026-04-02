@@ -79,8 +79,9 @@ Your role mirrors a senior QA/test engineer who designs verification strategies,
 #### 文件放置规则
 | 类型 | 目录 | 生命周期 | 示例 |
 |------|------|---------|------|
-| 正式测试文件 | `cov_tests/` | 永久保留（交付物） | `test_*.py`, `conftest.py` |
-| 覆盖率产物 | 仓库既有覆盖率输出目录；若仓库已采用 `cov_tests/` 约定则放入 `cov_tests/` | 报告完成后清理产物文件（保留目录和测试文件） | `htmlcov/`, `.coverage`, `.coverage.*`, 覆盖率 HTML/XML |
+| 正式测试文件 | `tests/` | 永久保留（交付物） | `test_*.py`, `conftest.py` |
+| 文档文件 | `docs/` | 永久保留（交付物） | `*.md`, `*.rst`, `*.adoc`（根目录仅允许 README.md/CHANGELOG.md/LICENSE/CONTRIBUTING.md） |
+| 覆盖率产物 | `tests/` 或项目既有覆盖率输出目录 | 报告完成后清理产物文件（保留目录和测试文件） | `htmlcov/`, `.coverage`, `.coverage.*`, 覆盖率 HTML/XML |
 | 审阅产物 | `tmp/` | 审阅完成后仅删除本轮创建且可证明为非交付物的子项 | review reports, Argus scan/check 结果, 分析输出 |
 | 临时测试文件 | `tmp/` | 测试完成后仅删除本轮创建且可证明为非交付物的子项 | temp fixtures, mock data, scratch test scripts |
 | pytest 缓存 | 自动生成位置 | 立即清理 | `__pycache__/`, `.pytest_cache/`, `*.pyc` |
