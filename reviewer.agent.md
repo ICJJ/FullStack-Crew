@@ -47,6 +47,12 @@ Your role mirrors a Staff Engineer doing PR review at Google, Amazon, or Meta.
 - 不必要的内存拷贝或大对象传递
 - 同步阻塞在异步上下文中
 
+### 6. Project Structure Compliance
+审查变更中的文件放置是否符合项目目录规范：
+- 测试文件（`test_*.py`、`*_test.py`、`conftest.py`）MUST 在 `tests/` 目录内（Go `*_test.go` 豁免）→ 违反标记 🔴 Critical
+- 文档文件（`.md`、`.rst`、`.adoc`）MUST 在 `docs/` 目录内（根目录仅允许 `README.md`、`CHANGELOG.md`、`LICENSE`、`CONTRIBUTING.md`）→ 违反标记 ⚠️ Warning
+- 临时/调试文件 MUST 在 `tmp/` 目录内 → 违反标记 ⚠️ Warning
+
 ## Review Process
 1. **了解变更范围**：确认哪些文件被修改、新增或删除
 2. **理解设计意图**：阅读关联的设计文档或 PR 描述

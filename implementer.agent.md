@@ -67,6 +67,8 @@ Your role mirrors a senior IC engineer who translates architecture into implemen
 - NEVER operate on more than the `📐 MAX_FILES` limit specified in the delegation prompt (default: 10 files per task) — if the task requires more, STOP and report to orchestrator for re-delegation
 - NEVER modify files marked as 🔒 FROZEN by orchestrator in the delegation prompt
 - ALWAYS place temporary/debug files in `tmp/` directory (e.g. `debug_*.py`, scratch scripts) — before task completion, delete only the `tmp/` sub-items created in this run that can be proven non-deliverable; if you find pre-existing `tmp/` content or unclear ownership, report it and do not delete the entire directory
+- ALWAYS place test files (`test_*.py`, `*_test.py`, `conftest.py`) in `tests/` directory — this is a forced convention; Go `*_test.go` is exempt (language requirement, stays with source)
+- ALWAYS place documentation files (`.md`, `.rst`, `.adoc`) in `docs/` directory — root directory only allows `README.md`, `CHANGELOG.md`, `LICENSE`, `CONTRIBUTING.md`; other doc files MUST be placed in `docs/`
 - MAY run `get_errors` with **no filePaths** (full project scan) or with the **entire source directory path** only when orchestrator explicitly requests read-only auxiliary verification — NEVER pass individual file paths; orchestrator remains the workspace-level gate owner, and unrelated pre-existing errors do not expand your fix scope
 
 ## 完备性原则 (Boil the Lake)
