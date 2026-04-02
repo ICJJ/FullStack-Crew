@@ -6,14 +6,14 @@ on:
       - '*.agent.md'
       - 'VERSION'
       - 'CHANGELOG.md'
-      - 'validate-agents.ps1'
+      - 'scripts/validate-agents.ps1'
       - '.github/workflows/validate.yml'
   pull_request:
     paths:
       - '*.agent.md'
       - 'VERSION'
       - 'CHANGELOG.md'
-      - 'validate-agents.ps1'
+      - 'scripts/validate-agents.ps1'
       - '.github/workflows/validate.yml'
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
 
       - name: Run Agent Validation
         shell: pwsh
-        run: ./validate-agents.ps1
+        run: ./scripts/validate-agents.ps1
 
       - name: Check README Freshness
         shell: pwsh

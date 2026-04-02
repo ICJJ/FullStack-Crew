@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 $script:errors = 0
 $script:warnings = 0
 
-$agentDir = $PSScriptRoot
+$agentDir = Split-Path $PSScriptRoot -Parent
 $agentFiles = Get-ChildItem -Path $agentDir -Filter "*.agent.md"
 
 Write-Host "=== FullStack-Crew Agent Validator ===" -ForegroundColor Cyan

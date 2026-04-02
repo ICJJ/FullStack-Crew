@@ -14,6 +14,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - 角色自进化机制
 - Argus MCP 集成与降级回退
 - Tech Lead 自递归
-- PowerShell 自动同步脚本 (sync.ps1)
+- PowerShell 自动同步脚本 (scripts/sync.ps1)
 - Completion Status Protocol (退出状态枚举)
 - Scope Drift Detection (范围漂移检查)
