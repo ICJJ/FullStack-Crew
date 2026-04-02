@@ -1,6 +1,6 @@
 # gstack 深度功能分析（Round 2）
 
-> 对比对象：garrytan/gstack v0.11.x (48K ⭐) vs 7-Agent System (tech-lead/pm/architect/swe/sdet/sre/reviewer)
+> 对比对象：garrytan/gstack v0.11.x (48K ⭐) vs 7-Agent System (orchestrator/pm/architect/implementer/verifier/deployer/reviewer)
 > 分析日期：2025-07-14
 > 分析维度：工作流编排 / 调试与回滚 / 上下文管理 / 安全与保护 / 开发者体验
 
@@ -11,10 +11,10 @@
 | # | gstack 能力 | 我们的实现位置 | 质量评分 | 差距说明 |
 |---|-----------|-------------|---------|---------|
 | 1 | **Office Hours（需求挑战）** | `pm.agent.md` § 0 — 5 个前提假设挑战问题 | ⭐⭐⭐ | gstack 有 6 个"Six Forcing Questions"含 Smart-skip 路由（按产品阶段跳过无关问题）、Anti-Sycophancy Rules、Pushback Patterns 范例；我们只有 5 个静态问题，无阶段自适应 |
-| 2 | **FROZEN 文件保护** | `tech-lead.agent.md` Phase 2 — `🔒 FROZEN: <file>` | ⭐⭐⭐⭐ | gstack 的 `/freeze` 用 PreToolUse Hook + shell 脚本做硬阻断（deny），我们用 prompt-level 标注；两者思路不同但在各自平台上都有效 |
+| 2 | **FROZEN 文件保护** | `orchestrator.agent.md` Phase 2 — `🔒 FROZEN: <file>` | ⭐⭐⭐⭐ | gstack 的 `/freeze` 用 PreToolUse Hook + shell 脚本做硬阻断（deny），我们用 prompt-level 标注；两者思路不同但在各自平台上都有效 |
 | 3 | **对抗性审查** | `reviewer.agent.md` § 6 — 攻击者视角 3 问 | ⭐⭐ | gstack 按 diff 大小自动分层（<50 跳过 / 50-199 跨模型 / 200+ 全 4 pass），含 cross-model synthesis；我们只是静态提问，无分层无综合 |
-| 4 | **浏览器 E2E 验证** | `sdet.agent.md` § 6 — `openBrowserPage` | ⭐⭐ | gstack 的 `/qa` 有 11 阶段完整 test→fix→verify 循环、WTF-likelihood 自监控、Health Score、regression test 自动生成；我们只有基础截图验证 |
-| 5 | **破坏性操作保护** | `tech-lead.agent.md` — auto-fix vs ask-user 分类 | ⭐⭐⭐ | gstack 的 `/careful` 有 shell 脚本正则匹配 + 白名单豁免（如 `rm -rf node_modules`）；我们用语义分类，覆盖面更广但无白名单机制 |
+| 4 | **浏览器 E2E 验证** | `verifier.agent.md` § 6 — `openBrowserPage` | ⭐⭐ | gstack 的 `/qa` 有 11 阶段完整 test→fix→verify 循环、WTF-likelihood 自监控、Health Score、regression test 自动生成；我们只有基础截图验证 |
+| 5 | **破坏性操作保护** | `orchestrator.agent.md` — auto-fix vs ask-user 分类 | ⭐⭐⭐ | gstack 的 `/careful` 有 shell 脚本正则匹配 + 白名单豁免（如 `rm -rf node_modules`）；我们用语义分类，覆盖面更广但无白名单机制 |
 
 **整体评估**：5 项借鉴中，FROZEN 保护和破坏性操作保护实现质量较好（⭐⭐⭐+），其余 3 项停留在"有了但不深"的阶段。
 
@@ -39,12 +39,12 @@
 **适用性**：⭐⭐⭐⭐⭐
 
 **实施方案**：
-1. `reviewer.agent.md` 新增 "Cross-Model Review" 模式：tech-lead 同时委派 reviewer（常规视角）+ swe（攻击者视角，只读）
-2. `tech-lead.agent.md` Quality Gate 增加 diff 大小分层逻辑：
+1. `reviewer.agent.md` 新增 "Cross-Model Review" 模式：orchestrator 同时委派 reviewer（常规视角）+ implementer（攻击者视角，只读）
+2. `orchestrator.agent.md` Quality Gate 增加 diff 大小分层逻辑：
    - Small diff (<50行)：仅 Argus scan+review
    - Medium diff (50-199行)：Argus + reviewer 对抗性审查
-   - Large diff (200+行)：Argus + reviewer + swe 三方审查
-3. 审查结果 synthesis 模板加入 tech-lead 的迭代协议
+   - Large diff (200+行)：Argus + reviewer + implementer 三方审查
+3. 审查结果 synthesis 模板加入 orchestrator 的迭代协议
 
 ---
 
@@ -57,16 +57,16 @@
 - **Scope Lock**：调查期间自动激活 freeze，限制编辑范围到受影响目录
 - **Sanitized Web Search**：搜索前自动剥离 hostname、IP、SQL、客户数据
 
-**我们的现状**：swe 接到 bug fix 任务后直接尝试修复，无调查纪律
+**我们的现状**：implementer 接到 bug fix 任务后直接尝试修复，无调查纪律
 
 **适用性**：⭐⭐⭐⭐⭐
 
 **实施方案**：
-1. `swe.agent.md` 新增 "Investigation Mode"：
+1. `implementer.agent.md` 新增 "Investigation Mode"：
    - 收到 bug fix 委派时，先 Investigation → Root Cause Report → 再实施修复
-   - 3 次假设失败后上报 tech-lead
-   - 修复触及 >5 文件时上报 tech-lead
-2. `tech-lead.agent.md` bug fix 委派模板中增加 "Investigation-First" 标志
+   - 3 次假设失败后上报 orchestrator
+   - 修复触及 >5 文件时上报 orchestrator
+2. `orchestrator.agent.md` bug fix 委派模板中增加 "Investigation-First" 标志
 
 ---
 
@@ -84,7 +84,7 @@
 **适用性**：⭐⭐⭐⭐
 
 **实施方案**：
-1. `tech-lead.agent.md` 任务完成后增加 Metrics 记录步骤（写入 `/memories/session/metrics.jsonl`）：
+1. `orchestrator.agent.md` 任务完成后增加 Metrics 记录步骤（写入 `/memories/session/metrics.jsonl`）：
    - 任务类型、参与 agent、迭代轮数、发现问题数、修复问题数、耗时
 2. 新增 `retro` 交互命令：读取历史 metrics，生成趋势报告
 3. 利用现有 memory 系统的 `/memories/repo/` 存储项目级 metrics
@@ -105,7 +105,7 @@
 **适用性**：⭐⭐⭐⭐⭐
 
 **实施方案**：
-1. `tech-lead.agent.md` Phase 1 增加文档审查步骤：
+1. `orchestrator.agent.md` Phase 1 增加文档审查步骤：
    - pm 完成 PRD 后 → 委派 architect 做 feasibility review
    - architect 完成 Design Doc 后 → 委派 reviewer 做 consistency review
 2. 审查模板：5 维度 + 质量分 + max 3 轮迭代 + convergence guard
@@ -127,7 +127,7 @@
 **实施方案**：
 1. Argus review 结果保存到 `/memories/repo/review-baseline.json`（总分、各维度分数、关键发现数）
 2. 下次 review 时加载 baseline 对比，标记 regression（分数下降的维度）
-3. `tech-lead.agent.md` review 结果展示增加 "vs baseline" delta 列
+3. `orchestrator.agent.md` review 结果展示增加 "vs baseline" delta 列
 
 ---
 
@@ -148,7 +148,7 @@
 **适用性**：⭐⭐⭐⭐
 
 **实施方案**：
-1. `tech-lead.agent.md` auto-fix/ask-user 分类增加决策原则引导
+1. `orchestrator.agent.md` auto-fix/ask-user 分类增加决策原则引导
 2. 每次自动决策记录简短审计日志到 `/memories/session/decisions.md`
 3. 任务完成时展示 Decision Summary（N 个自动决策，M 个用户确认）
 
@@ -169,13 +169,13 @@ If WTF > 20%: STOP immediately.
 Hard cap: 50 fixes.
 ```
 
-**我们的现状**：tech-lead 有 max 3 rounds 限制，但无细粒度自监控
+**我们的现状**：orchestrator 有 max 3 rounds 限制，但无细粒度自监控
 
 **适用性**：⭐⭐⭐⭐
 
 **实施方案**：
-1. `tech-lead.agent.md` Iteration Protocol 增加 WTF 计算：
-   - 每次 swe 修复后评估：修改文件数 >3 → +5%，涉及未委派文件 → +20%，revert → +15%
+1. `orchestrator.agent.md` Iteration Protocol 增加 WTF 计算：
+   - 每次 implementer 修复后评估：修改文件数 >3 → +5%，涉及未委派文件 → +20%，revert → +15%
    - WTF > 20% → 停止自动修复，报告用户
 2. 与现有 max 3 rounds 双重保障
 
@@ -198,7 +198,7 @@ Hard cap: 50 fixes.
    - prompt injection 风险（用户输入直接拼入 prompt）
    - LLM 输出未消毒直接执行
    - API key / endpoint 硬编码在 prompt 中
-2. `tech-lead.agent.md` 审查涉及新 MCP 工具集成时，增加 supply chain 检查步骤
+2. `orchestrator.agent.md` 审查涉及新 MCP 工具集成时，增加 supply chain 检查步骤
 
 ---
 
@@ -209,15 +209,15 @@ Hard cap: 50 fixes.
 - 方法：`git stash` → run tests → `git stash pop` 对比
 - Pre-existing 失败不阻塞 shipping
 
-**我们的现状**：sdet 报告所有失败，tech-lead 手动判断归属
+**我们的现状**：verifier 报告所有失败，orchestrator 手动判断归属
 
 **适用性**：⭐⭐⭐⭐
 
 **实施方案**：
-1. `sdet.agent.md` 测试执行流程增加 "Ownership Triage"：
+1. `verifier.agent.md` 测试执行流程增加 "Ownership Triage"：
    - 首次发现失败时，在 base branch 上重跑失败用例
    - 区分标记 `[NEW]` vs `[PRE-EXISTING]`
-2. `tech-lead.agent.md` 只对 `[NEW]` 失败触发 swe 修复循环
+2. `orchestrator.agent.md` 只对 `[NEW]` 失败触发 implementer 修复循环
 
 ---
 
@@ -232,12 +232,12 @@ Hard cap: 50 fixes.
 - 每个提交独立编译和测试通过
 - 提交消息遵循 Conventional Commits
 
-**我们的现状**：swe 一次性提交所有变更
+**我们的现状**：implementer 一次性提交所有变更
 
 **适用性**：⭐⭐⭐
 
 **实施方案**：
-- `swe.agent.md` Working Protocol 增加："对于涉及 3+ 文件的变更，按逻辑单元拆分独立 commit"
+- `implementer.agent.md` Working Protocol 增加："对于涉及 3+ 文件的变更，按逻辑单元拆分独立 commit"
 - 每个 commit 需独立通过 lint
 
 ---
@@ -250,12 +250,12 @@ Hard cap: 50 fixes.
 - Alert levels：CRITICAL / HIGH / MEDIUM / LOW
 - 健康报告：HEALTHY / DEGRADED / BROKEN
 
-**我们的现状**：sre 做一次性部署验证（health check），无持续监控
+**我们的现状**：deployer 做一次性部署验证（health check），无持续监控
 
 **适用性**：⭐⭐⭐
 
 **实施方案**：
-- `sre.agent.md` 部署后增加 "Canary Window"（可选）：
+- `deployer.agent.md` 部署后增加 "Canary Window"（可选）：
   - 部署后执行 3-5 次间隔检查（非 60 秒循环，适配 agent 会话限制）
   - 检查 health endpoint + 基本功能验证
   - 出现异常时建议 rollback
@@ -285,7 +285,7 @@ Hard cap: 50 fixes.
 |---|-----------|----------|
 | 1 | **Browse 二进制集成**（`$B goto`, `$B snapshot`, `$B perf`） | 依赖 Claude Code 特有的 browse daemon 架构。我们使用 VS Code 的 `openBrowserPage` 工具，交互模型完全不同 |
 | 2 | **Codex CLI 集成** | OpenAI 特有工具链。我们的 cross-model 能力需要通过 agent 委派而非 CLI wrapper 实现 |
-| 3 | **部署平台自动检测**（Fly.io / Render / Vercel / Netlify） | gstack 面向个人开发者的多平台部署场景。我们的 sre 面向企业内部标准化部署流程 |
+| 3 | **部署平台自动检测**（Fly.io / Render / Vercel / Netlify） | gstack 面向个人开发者的多平台部署场景。我们的 deployer 面向企业内部标准化部署流程 |
 | 4 | **YC Founder Discovery / 申请引流** | gstack 特有的 YC 营销功能（`ycombinator.com/apply?ref=gstack`），与工程工具链无关 |
 | 5 | **TODOS.md 跨 skill 持久计划** | gstack 用文件系统持久化任务状态。我们用 VS Code memory 系统（`/memories/`），更适合 Copilot agent 架构 |
 | 6 | **Preamble Tier 系统**（1-4 级渐进特性） | 模板生成系统（SKILL.md.tmpl → SKILL.md），与我们的 `.agent.md` 静态定义模式不兼容 |
@@ -297,17 +297,17 @@ Hard cap: 50 fixes.
 
 | 优先级 | 能力 | 改动范围 | 预期收益 |
 |-------|------|---------|---------|
-| P0 | Cross-Model Dual Voices | tech-lead + reviewer | 审查覆盖率翻倍，减少单模型盲区 |
-| P0 | Investigation Discipline | swe + tech-lead | Bug fix 质量显著提升，避免"试了又试"的低效循环 |
-| P0 | Spec Review Loop | tech-lead | PRD/Design Doc 质量提升，下游返工减少 |
-| P1 | Baseline → Compare → Regression | tech-lead + memory | 质量趋势可视化，regression 早发现 |
-| P1 | Persistent Metrics / Retro | tech-lead + memory | 工程效能数据化，支持持续改进 |
-| P1 | Decision Framework | tech-lead | 决策透明度提升，审计可追溯 |
-| P1 | WTF-Likelihood | tech-lead | 修复循环安全阀，防止过度修改 |
+| P0 | Cross-Model Dual Voices | orchestrator + reviewer | 审查覆盖率翻倍，减少单模型盲区 |
+| P0 | Investigation Discipline | implementer + orchestrator | Bug fix 质量显著提升，避免“试了又试”的低效循环 |
+| P0 | Spec Review Loop | orchestrator | PRD/Design Doc 质量提升，下游返工减少 |
+| P1 | Baseline → Compare → Regression | orchestrator + memory | 质量趋势可视化，regression 早发现 |
+| P1 | Persistent Metrics / Retro | orchestrator + memory | 工程效能数据化，支持持续改进 |
+| P1 | Decision Framework | orchestrator | 决策透明度提升，审计可追溯 |
+| P1 | WTF-Likelihood | orchestrator | 修复循环安全阀，防止过度修改 |
 | P1 | LLM Security + Supply Chain | reviewer | MCP 生态安全保障 |
-| P2 | Test Failure Ownership | sdet + tech-lead | 减少误报，加速 CI |
-| P2 | Bisectable Commits | swe | 回归定位效率提升 |
-| P2 | Post-Deploy Canary | sre | 部署后可靠性增强 |
+| P2 | Test Failure Ownership | verifier + orchestrator | 减少误报，加速 CI |
+| P2 | Bisectable Commits | implementer | 回归定位效率提升 |
+| P2 | Post-Deploy Canary | deployer | 部署后可靠性增强 |
 | P2 | Anti-Sycophancy Rules | pm | 需求挑战深度提升 |
 
 ---
@@ -318,7 +318,7 @@ Hard cap: 50 fixes.
 
 1. **Office Hours → 增加 Anti-Sycophancy + Smart-skip**：pm 的 5 个问题升级为按产品阶段自适应路由
 2. **对抗性审查 → 增加 diff 分层**：小 diff 跳过对抗，大 diff 增加多视角
-3. **浏览器 E2E → 增加 Health Score + Fix Loop**：sdet 的基础验证升级为 test→fix→verify 循环
+3. **浏览器 E2E → 增加 Health Score + Fix Loop**：verifier 的基础验证升级为 test→fix→verify 循环
 4. **破坏性操作 → 增加白名单豁免**：`rm -rf node_modules` 等安全操作无需确认
 
 ---
@@ -327,5 +327,5 @@ Hard cap: 50 fixes.
 
 1. Cross-Model 在 VS Code Copilot 架构下的最佳实现方式？同时委派两个 sub-agent 的并发控制？
 2. Metrics JSONL 的长期存储策略？`/memories/repo/` 是否适合高频写入？
-3. Investigation Mode 是否需要独立的 `investigator.agent.md` 还是作为 swe 的模式切换？
+3. Investigation Mode 是否需要独立的 `investigator.agent.md` 还是作为 implementer 的模式切换？
 4. Baseline JSON 的版本管理——是否应该 commit 到仓库供团队共享？
