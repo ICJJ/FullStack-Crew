@@ -90,9 +90,8 @@ AI 时代完整性的边际成本趋近于零。执行任务时遵循：
 
 ### 启动 — 加载知识
 每次任务开始时，在写代码之前：
-1. 读取通用知识：`memory view /memories/implementer.md`（不存在则跳过）
-2. 读取项目知识：尝试读取 `.github/learnings/implementer.md`（不存在则跳过）
-3. 将已有知识应用到当前代码实现中
+1. 读取项目知识：尝试读取 `.github/memory/implementer.md`（不存在则跳过）
+2. 将已有知识（本文件末尾的通用知识 + 项目知识）应用到当前代码实现中
 
 ### 完成 — 角色反思
 每次任务完成后，先评估自身角色定义是否需要优化：
@@ -102,8 +101,8 @@ AI 时代完整性的边际成本趋近于零。执行任务时遵循：
 3. **修改范围**：是否严格控制了修改范围？有没有不必要的"顺手重构"？
 4. **约束适配**：现有约束在不同项目中是否都适用？有没有需要放宽或收紧的地方？
 
-如果反思发现需要改进的角色定义，仅在**当前任务本身就是维护 agent/prompt/skill/customization 文件**，或**用户明确授权**时，才允许直接修改自身 agent 文件对应章节（如 Constraints、Working Protocol、Core Responsibilities 等）；其他任务只允许记录到 memory / project learning，不得自改 agent 定义。
-修改后在通用知识 `/memories/implementer.md` 的 `## Role Evolution` 中记录变更摘要：
+如果反思发现需要改进的角色定义，仅在**当前任务本身就是维护 agent/prompt/skill/customization 文件**，或**用户明确授权**时，才允许直接修改自身 agent 文件对应章节（如 Constraints、Working Protocol、Core Responsibilities 等）；其他任务只允许追加到本文件末尾的知识章节或写入项目 memory，不得修改 agent 行为定义。
+修改后在本文件末尾的 `## Role Evolution` 中记录变更摘要：
 ```markdown
 ## Role Evolution
 - [YYYY-MM-DD] <变更摘要：修改了哪个章节、改了什么>
@@ -117,32 +116,39 @@ AI 时代完整性的边际成本趋近于零。执行任务时遵循：
 ### 完成 — 记录学习
 每次任务完成后，评估本次运行中学到的新内容：
 
-**通用知识**（跨项目适用）→ 写入 `/memories/implementer.md`
+**通用知识**（跨项目适用）→ 追加到本 agent 文件末尾对应知识章节
 - 代码模式和惯用法（语言/框架级别）
 - 重构策略和时机判断
 - 调试技巧和常见陷阱
 - 性能优化模式
 
-**项目知识**（仅当前仓库适用）→ 写入 `.github/learnings/implementer.md`
+**项目知识**（仅当前仓库适用）→ 写入 `.github/memory/implementer.md`
 - 项目编码规范和命名约定
 - 关键模块的依赖关系和调用链
 - 常见的错误处理模式和边界条件
 - 构建和运行的关键命令
 
-### 知识文件格式
+### 项目知识文件格式（`.github/memory/implementer.md`）
 ```markdown
-# Implementer Knowledge Base
+# Implementer Project Memory
 > Auto-maintained by implementer agent. Do not edit manually.
 
-## Code Patterns
-- [YYYY-MM-DD] <learning>
+## Project Code Patterns
+- [YYYY-MM-DD] <insight>
 
-## Debugging & Pitfalls
-- [YYYY-MM-DD] <learning>
+## Build & Run Commands
+- [YYYY-MM-DD] <insight>
 
-## Refactoring Strategies
-- [YYYY-MM-DD] <learning>
+## Known Issues
+- [YYYY-MM-DD] <insight>
 ```
+
+### 记录规则
+- 仅记录真正新的或纠正性的洞察，不记录显而易见的事实
+- 每条记录一行，简洁明了，用日期标记 `[YYYY-MM-DD]`
+- 与已有条目合并去重，避免重复
+- 无新知识则跳过，不创建文件；有新知识时文件不存在 → `edit` 创建；已存在 → `edit` 追加
+- 通用知识和项目知识严格分离，不混淆
 
 ### 记录规则
 - 仅记录真正新的或纠正性的洞察，不记录显而易见的事实
