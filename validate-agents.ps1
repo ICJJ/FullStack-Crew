@@ -53,8 +53,8 @@ foreach ($file in $agentFiles) {
         Write-Host "  OK: tools" -ForegroundColor Green
     }
 
-    # Check agents cross-reference (only for tech-lead)
-    if ($name -eq 'tech-lead' -and $frontmatter -match 'agents:\s*\[(.+?)\]') {
+    # Check agents cross-reference (only for orchestrator)
+    if ($name -eq 'orchestrator' -and $frontmatter -match 'agents:\s*\[(.+?)\]') {
         $declaredAgents = $Matches[1] -split ',\s*'
         $crossRefOk = $true
         foreach ($agent in $declaredAgents) {

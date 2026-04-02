@@ -5,7 +5,7 @@
 1. 在 `prompts/` 根目录创建 `<name>.agent.md`（**不要**放子目录，VS Code 不识别）
 2. 包含 YAML frontmatter：`description`, `tools`, `user-invocable`
 3. 必须包含章节：Core Responsibilities, Constraints, Self-Learning Protocol
-4. 在 `tech-lead.agent.md` 的 `agents:` 列表和 Sub-Agents 表中注册新 Agent
+4. 在 `orchestrator.agent.md` 的 `agents:` 列表和 Sub-Agents 表中注册新 Agent
 5. 更新 `README.md` 的 Agent 概览表
 6. 运行 `./validate-agents.ps1` 确认通过
 
