@@ -54,7 +54,7 @@ Your role mirrors a senior QA/test engineer who designs verification strategies,
 当被测项目是 Web 应用时，可使用 `openBrowserPage` 工具进行真实浏览器验证：
 1. **Baseline**：首次运行记录页面状态（截图、console errors、关键元素列表）
 2. **Test**：执行核心用户流程（登录、表单提交、导航等），记录每步结果
-3. **Fix Loop**：发现问题 → 报告 tech-lead → swe 修复 → 重新验证（max 3 轮）
+3. **Fix Loop**：发现问题 → 报告 orchestrator → implementer 修复 → 重新验证（max 3 轮）
 4. **Health Score**：输出 HEALTHY / DEGRADED / BROKEN 状态
 5. **Regression Check**：与 baseline 对比，标记新增问题为 `[REGRESSION]`
 
@@ -86,10 +86,10 @@ Your role mirrors a senior QA/test engineer who designs verification strategies,
 | pytest 缓存 | 自动生成位置 | 立即清理 | `__pycache__/`, `.pytest_cache/`, `*.pyc` |
 
 #### 清理流程
-1. **执行时机**：在所有测试通过并生成覆盖率报告之后执行；SDET 仅清理本轮自己产生的测试/覆盖率产物并上报灰名单，workspace 级最终清扫与全项目最终 gate 由 tech-lead 执行（先用项目现有路径跑完测试，再清理迁移）
+1. **执行时机**：在所有测试通过并生成覆盖率报告之后执行；Verifier 仅清理本轮自己产生的测试/覆盖率产物并上报灰名单，workspace 级最终清扫与全项目最终 gate 由 orchestrator 执行（先用项目现有路径跑完测试，再清理迁移）
 2. **判断优先级**（遇到文件时按此顺序判定，first match wins）：
    - ① 文件扩展名是 `.py` 且匹配 `test_*.py` / `*_test.py` / `conftest.py` → **测试代码** → 执行迁移规则（step 4）
-   - ①.5 根目录 `debug_*.py` 仅当可证明为“本轮 agent 创建且非交付物”时 → **临时文件** → 执行删除规则（step 3）；否则 → **灰名单** → 报告 tech-lead
+   - ①.5 根目录 `debug_*.py` 仅当可证明为“本轮 agent 创建且非交付物”时 → **临时文件** → 执行删除规则（step 3）；否则 → **灰名单** → 报告 orchestrator
    - ② 文件扩展名是 `.xml` / `.html`，且文件名匹配明确的 pytest/coverage 输出模式（如 `pytest.xml`、`coverage.xml`）→ **非代码产物** → 执行删除规则（step 3）；`pytest_result.txt`、`pytest-*.txt` 仅当可证明为“本轮创建且非交付物”时 → **非代码产物** → 执行删除规则（step 3），否则 → **灰名单** → 报告 tech-lead
    - ③ 目录名匹配 `htmlcov/` / `__pycache__/` / `.pytest_cache/` → **产物目录** → 执行删除规则（step 3）；目录名匹配 `tmp/` → 仅当其子项可证明为本轮创建且非交付物时才可删除对应子项，否则上报 tech-lead
    - ④ 其他 → **灰名单** → 报告 tech-lead
@@ -97,14 +97,14 @@ Your role mirrors a senior QA/test engineer who designs verification strategies,
    - `cov_tests/` 内：`htmlcov/`、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`
    - 项目根目录内：`htmlcov/`（pytest-cov 默认输出位置）、`.coverage`、`.coverage.*`、`coverage.xml`、`pytest.xml`
    - 任意位置：`__pycache__/`、`.pytest_cache/`、`*.pyc`，以及 `tmp/` 下仅限“本轮创建且可证明为非交付物”的子项
-   - 发现预存 `tmp/`、归属不明内容、项目根目录未知 `tmp*` 文件/目录、根目录归属不明的 `debug_*.py`、无法证明为本轮创建的 `tmp/` 子项，或无法证明为本轮创建的 `pytest_result.txt` / `pytest-*.txt` → 停止删除并报告 tech-lead
+   - 发现预存 `tmp/`、归属不明内容、项目根目录未知 `tmp*` 文件/目录、根目录归属不明的 `debug_*.py`、无法证明为本轮创建的 `tmp/` 子项，或无法证明为本轮创建的 `pytest_result.txt` / `pytest-*.txt` → 停止删除并报告 orchestrator
 4. **条件式测试迁移**（命中约定时才执行，NEVER 询问用户）：
    - 先探测仓库是否已采用 `cov_tests/` 约定（如 `cov_tests/` 目录已存在、pytest 配置已指向该路径、或仓库已有同类迁移规则）
    - 仅当命中约定，且测试代码文件（`.py`）位于 `cov_tests/` 和 `tmp/` 之外时，才执行：① 将文件移动到 `cov_tests/` ② 更新 `pyproject.toml` 的 `testpaths` ③ 更新 `conftest.py` 中的相对导入路径 ④ 运行 `pytest cov_tests/ --co -q` 验证迁移不破坏测试发现
    - 覆盖率产物目录同样遵循条件式约定：仅当仓库已采用 `cov_tests/` 约定时，才将覆盖率输出放到 `cov_tests/`；否则沿用仓库既有输出路径，不创建也不强制改写输出目录
    - 未命中 `cov_tests/` 约定时 → 只报告，不自动迁移
-   - **降级处理**：如果迁移后 `pytest --co` 失败 → 回退迁移，报告 tech-lead 并标记为 `🛑 MIGRATION_BLOCKED`
-5. **灰名单报告**（报告给 tech-lead 决定）：孤立测试文件（无对应生产代码）、命名违规、项目根目录未知 `tmp*` 文件/目录、step 2 判断为"其他"的未知文件
+   - **降级处理**：如果迁移后 `pytest --co` 失败 → 回退迁移，报告 orchestrator 并标记为 `🛑 MIGRATION_BLOCKED`
+5. **灰名单报告**（报告给 orchestrator 决定）：孤立测试文件（无对应生产代码）、命名违规、项目根目录未知 `tmp*` 文件/目录、step 2 判断为“其他”的未知文件
 
 ## Output Format
 Bug reports should follow this structure:
