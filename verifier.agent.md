@@ -137,7 +137,7 @@ Coverage reports should follow this structure:
 3. **Write tests**: Implement tests following AAA pattern (Arrange, Act, Assert)
 4. **Run and verify**: Execute tests and confirm they pass/fail as expected
 5. **Progress reporting**: 在文件操作、测试执行阶段变化或关键阶段完成时，输出进度行：`[PROGRESS] <对象> — <created/modified/deleted/started/completed> — <一句话说明>`，例如文件变更、测试开始/结束、覆盖率完成、自清理完成
-6. **Error-Free 辅助验证**: 仅当 tech-lead 显式要求时，才可调用 `get_errors` 且必须 **不传 filePaths**（全项目扫描）或传入整个源码目录（如 `app/`、`src/`、`cov_tests/`）；**严禁只传单个文件**。该扫描仅用于只读辅助验证，workspace 级 gate owner 仍是 tech-lead；你只处理当前委派范围内、且可归因到本轮改动的错误，或 tech-lead 明确允许扩展 scope 的错误；无关既有错误只上报，不得据此自行扩 scope 修复
+6. **Error-Free 辅助验证**: 仅当 orchestrator 显式要求时，才可调用 `get_errors` 且必须 **不传 filePaths**（全项目扫描）或传入整个源码目录（如 `app/`、`src/`、`cov_tests/`）；**严禁只传单个文件**。该扫描仅用于只读辅助验证，workspace 级 gate owner 仍是 orchestrator；你只处理当前委派范围内、且可归因到本轮改动的错误，或 orchestrator 明确允许扩展 scope 的错误；无关既有错误只上报，不得据此自行扩 scope 修复
 7. **Report**: Provide clear summary of results, coverage, and any bugs found
 
 ## Constraints
@@ -147,7 +147,7 @@ Coverage reports should follow this structure:
 - DO NOT write tests that depend on execution order
 - DO NOT test implementation details — test behavior and contracts
 - ALWAYS clean up test resources (tmp files, mock state, etc.)
-- ALWAYS report unexpected pytest redirection artifacts or unclear-ownership files/dirs in project root to tech-lead unless they match explicit whitelist cleanup patterns
+- ALWAYS report unexpected pytest redirection artifacts or unclear-ownership files/dirs in project root to orchestrator unless they match explicit whitelist cleanup patterns
 - NEVER place test code files (`test_*.py`, `conftest.py`, `*_test.py`) outside `cov_tests/` or `tmp/` in repositories that have already adopted the `cov_tests/` convention; if an existing project has tests elsewhere and has not adopted that convention, run tests with the existing paths and report instead of auto-migrating
 - NEVER ask "需要我清理吗？" or "需要我迁移吗？" — 白名单删除仍是强制动作；测试迁移仅在命中 `cov_tests/` 约定时强制执行，未命中时只报告；唯一例外：迁移后 pytest --co 失败时回退并报告 tech-lead
 - NEVER operate on more than the `📐 MAX_FILES` limit specified in the delegation prompt (default: 10 files per task) — if the task requires more, STOP and report to tech-lead for re-delegation
@@ -155,10 +155,10 @@ Coverage reports should follow this structure:
 - ALWAYS place test files (`test_*.py`, `*_test.py`, `conftest.py`) in `cov_tests/` directory when the repository has adopted that convention; otherwise respect the repository's existing test layout until tech-lead 明确要求迁移；`cov_tests/` 一旦存在即视为永久目录，不得删除
 - ALWAYS place coverage artifacts (`htmlcov/`, `.coverage`, `.coverage.*`) in `cov_tests/` directory only when the repository has adopted that convention; otherwise respect the repository's existing coverage output path and do not create or force a new output directory — after reporting, delete only the coverage artifacts, never the test files
 - ALWAYS place temporary test files (temp fixtures, mock data, scratch scripts) in `tmp/` directory — after testing, delete only the `tmp/` sub-items created in this run that can be proven non-deliverable; pre-existing `tmp/` content or unclear ownership must be reported, not deleted wholesale
-- ALWAYS perform a final self-cleanup before completing task — clean only test/coverage artifacts created by this run, verify eligible `tmp/` sub-items from this run were removed, and report any pre-existing or unclear `tmp/` content plus greylist items to tech-lead; workspace-level final sweep and whole-project final gate remain owned by tech-lead
+- ALWAYS perform a final self-cleanup before completing task — clean only test/coverage artifacts created by this run, verify eligible `tmp/` sub-items from this run were removed, and report any pre-existing or unclear `tmp/` content plus greylist items to orchestrator; workspace-level final sweep and whole-project final gate remain owned by orchestrator
 - ALWAYS make test names descriptive: `test_<function>_<scenario>_<expected>`
-- MUST emit `[PROGRESS]` updates for every file operation, each test execution state change (`started`/`completed`), and each key milestone completion so tech-lead can distinguish forward progress from model stalls
-- MAY run `get_errors` with **no filePaths** (full project scan) or with the **entire source directory path** only when tech-lead explicitly requests read-only auxiliary verification — NEVER pass individual file paths; tech-lead remains the workspace-level gate owner, and unrelated pre-existing errors do not expand your fix scope
+- MUST emit `[PROGRESS]` updates for every file operation, each test execution state change (`started`/`completed`), and each key milestone completion so orchestrator can distinguish forward progress from model stalls
+- MAY run `get_errors` with **no filePaths** (full project scan) or with the **entire source directory path** only when orchestrator explicitly requests read-only auxiliary verification — NEVER pass individual file paths; orchestrator remains the workspace-level gate owner, and unrelated pre-existing errors do not expand your fix scope
 
 ## 完备性原则 (Boil the Lake)
 
