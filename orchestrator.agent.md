@@ -53,10 +53,10 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
   - 连续两轮 findings 完全相同 → 走早停升级分支，立即标记为 `Reviewer Concerns` 并上报；这不是稳定通过条件，稳定通过仍仅由 `clean_passes` 定义
 
 ### Phase 2 — Implementation
-7. Delegate to **swe** to implement code based on the design
+7. Delegate to **implementer** to implement code based on the design
    - **文件操作上限**：单次委派最多操作 **10 个文件**；超过则拆分为多次委派，每次附带已完成进度上下文
-   - **安全护栏**：委派时如果存在不可修改的关键文件（配置、数据库 migration、公共 API 契约等），在委派 prompt 中显式标注 `🔒 FROZEN: <file>` 列表，swe MUST NOT 修改这些文件
-   - **Bug Fix 委派**：必须附加 `🔍 INVESTIGATE-FIRST` 标志，要求 swe 先根因调查再修复
+   - **安全护栏**：委派时如果存在不可修改的关键文件（配置、数据库 migration、公共 API 契约等），在委派 prompt 中显式标注 `🔒 FROZEN: <file>` 列表，implementer MUST NOT 修改这些文件
+   - **Bug Fix 委派**：必须附加 `🔍 INVESTIGATE-FIRST` 标志，要求 implementer 先根因调查再修复
    - **委派 Prompt 模板**（所有 sub-agent 委派 MUST 使用）：
      ```
      📋 TASK: <一句话任务描述>
@@ -74,16 +74,16 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 #### 适用场景
 以下场景允许并行执行：
-- swe 实现模块 A 的同时，sdet 为**已完成的**模块 B 编写测试
-- architect 技术评审 与 sdet 测试计划设计 可并行
-- 多个独立模块可同时委派不同 swe 子任务（通过子 tech-lead）；但子 tech-lead 不并行执行 workspace 级 `read/problems`、Final Sweep 或最终交付汇总
+- implementer 实现模块 A 的同时，verifier 为**已完成的**模块 B 编写测试
+- architect 技术评审 与 verifier 测试计划设计 可并行
+- 多个独立模块可同时委派不同 implementer 子任务（通过子 orchestrator）；但子 orchestrator 不并行执行 workspace 级 `read/problems`、Final Sweep 或最终交付汇总
 - Phase 3 中 Argus scan 与 reviewer 委派可并行（Medium/Large diff）
 
 #### 禁止并行（硬约束）
 - 同一文件的修改和测试
 - 有依赖关系的模块实现（A import B → A 必须等 B 完成）
-- 同一文件的多个 swe 修改委派
-- workspace 级 `read/problems`、Final Sweep、最终交付汇总（仅顶层 tech-lead 串行执行）
+- 同一文件的多个 implementer 修改委派
+- workspace 级 `read/problems`、Final Sweep、最终交付汇总（仅顶层 orchestrator 串行执行）
 
 #### Step 1 — Pre-Parallelization Overlap Analysis（强制）
 
@@ -121,7 +121,7 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 
 #### Step 3 — Parallel Sync & Merge
 
-所有并行分支完成后，顶层 tech-lead 执行合并检查：
+所有并行分支完成后，顶层 orchestrator 执行合并检查：
 1. **变更文件交叉验证** — 确认实际修改文件与 Overlap Analysis 声明一致；发现未声明的文件修改 → 标记 `[DRIFT]`
 2. **集成验证** — 对所有并行分支的变更文件执行一次 workspace 级 `read/problems`（全目录扫描）
 3. **冲突检测** — 若两个分支意外修改了同一文件（Overlap Analysis 遗漏）→ 保留先完成的分支结果，对后完成的分支重新委派
@@ -134,20 +134,20 @@ Follow this sequence for every task. Skip steps that are clearly unnecessary (e.
 - 若失败分支的输出是后续步骤的前置依赖 → 阻塞后续步骤直至该分支恢复
 
 ### Phase 3 — Quality Gate (Iterative)
-Trivial track 最小质量门禁：若 swe 产生实际改动，仍必须执行 step 8 Scope Drift Check；始终执行 step 8.5 Error-Free、step 9 按 diff 大小审查，以及 Phase 3.5 Final Sweep。step 11-14 的 sdet 测试委派仅适用于非 Trivial，或 Trivial 任务被明确要求补测时。
+Trivial track 最小质量门禁：若 implementer 产生实际改动，仍必须执行 step 8 Scope Drift Check；始终执行 step 8.5 Error-Free、step 9 按 diff 大小审查，以及 Phase 3.5 Final Sweep。step 11-14 的 verifier 测试委派仅适用于非 Trivial，或 Trivial 任务被明确要求补测时。
 
 8. **Scope Drift Check** — 每轮质量门禁前进行范围漂移检查：
-   - 对比 todo list 原始项 vs swe 实际变更文件列表
+   - 对比 todo list 原始项 vs implementer 实际变更文件列表
    - 对每个 todo 项标记状态：`[DONE]` / `[PARTIAL]` / `[NOT DONE]` / `[CHANGED]`（需求变更）/ `[DRIFT]`（范围蔓延  — 改了不相关的文件）
-   - 发现 `[DRIFT]` → 要求 swe 回退不相关变更或给出合理解释
+   - 发现 `[DRIFT]` → 要求 implementer 回退不相关变更或给出合理解释
    - 发现 `[NOT DONE]` → 重新委派或标记为遗留
 8.5. **Error-Free 检查** — 使用 `read/problems` 获取编译/lint 错误：
     - **扫描范围**：调用 `read/problems` 时 **不传 filePaths 参数**（获取全项目错误）或传入**整个源码目录路径**（如 `app/`、`src/`），**严禁只传单个文件** — 单文件扫描会遗漏其他被修改文件的错误
    - **可见性**：保留全项目 error 视图；所有非 `.md` 文件的 error 都要记录并在交付中说明
-  - **Owner 边界**：顶层 tech-lead 始终是 workspace 级 `read/problems` gate owner；如需加速定位，可显式要求 swe/sdet 执行同范围扫描作为**只读辅助验证**，但这不转移 gate ownership，也不允许其因无关既有错误自行扩 scope 修复
-   - **阻塞归因**：仅当 error 是**本次改动引入的**，或位于**当前变更 scope / 明确允许扩展的 scope** 内时，才触发 swe 修复闭环；既有且无关 scope 的 error 必须上报，但不阻塞本轮稳定通过
-  - 发现属于阻塞归因的 error → 委派 **swe** 修复 → **触发重新验证**（可对每个被修改的文件执行 `read/readFile` 以刷新上下文参考，但这**不保证** VS Code 诊断重载）→ 重新 `read/problems`（同样全目录扫描）验证；`read/problems` 才是唯一可信的错误状态依据，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
-    - **`# pyright: ignore` / `type: ignore` 使用策略**：仅在适用时启用；MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。swe 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
+  - **Owner 边界**：顶层 orchestrator 始终是 workspace 级 `read/problems` gate owner；如需加速定位，可显式要求 implementer/verifier 执行同范围扫描作为**只读辅助验证**，但这不转移 gate ownership，也不允许其因无关既有错误自行扩 scope 修复
+   - **阻塞归因**：仅当 error 是**本次改动引入的**，或位于**当前变更 scope / 明确允许扩展的 scope** 内时，才触发 implementer 修复闭环；既有且无关 scope 的 error 必须上报，但不阻塞本轮稳定通过
+  - 发现属于阻塞归因的 error → 委派 **implementer** 修复 → **触发重新验证**（可对每个被修改的文件执行 `read/readFile` 以刷新上下文参考，但这**不保证** VS Code 诊断重载）→ 重新 `read/problems`（同样全目录扫描）验证；`read/problems` 才是唯一可信的错误状态依据，并按 Iteration Protocol 持续迭代直至稳定通过或达到停止条件
+    - **`# pyright: ignore` / `type: ignore` 使用策略**：仅在适用时启用；MUST 先尝试真正修复类型错误（补注解、调整逻辑、收窄类型）；仅当以下条件**全部满足**时才允许 suppress：1) 第三方库类型定义缺陷 2) 修复成本不合理（需改上游库）3) 已尝试至少一种替代方案。implementer 每添加一处 suppress MUST 在返回结果中标注 `[SUPPRESS] <file>#L<line> — <原因>`
     - 6 轮内仍未达到稳定通过 → 标记为 `🛑 ESCALATED`，报告用户
 9. Code review — 按 diff 大小分层审查：
    - **Small diff (<50 行)**：仅 Argus MCP `argus_scan` → `argus_review`
